@@ -1,7 +1,7 @@
 # VEX home (projectvex.ai rebuild)
 
 One-screen home: Kimm (Live2D Vex) on the left, the chat with Vex on the right, the vEXIT key in the footer,
-the risk arc over her head, the dial menu behind the grid key. Version 83 of the preview artifact.
+the risk arc over her head, the dial menu behind the grid key. Version 87 of the preview artifact.
 
 ## Run it
 

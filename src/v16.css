@@ -2287,3 +2287,38 @@ body.one .t-chart2 { padding: 0 16px !important; }
 .t-chart2 .cx2-top { padding: 16px 0 12px; }
 body.one .t-chart2 .cx { margin: 0 0 12px; }
 body.one .t-chart2 .cx-foot { margin: 0 -16px !important; padding: 12px 16px !important; min-height: 0; height: auto !important; gap: 24px; row-gap: 8px; border-top: 1px solid var(--line) !important; line-height: 1; }
+
+/* ================= v84 phones and tablets (≤900px): Kimm in the upper part, the talk as a solid panel below her,
+   the composer and the vEXIT key at the foot; nothing covers her face ================= */
+@media (max-width: 900px) {
+  body.one .thread { top: var(--talk-top, 46%) !important; bottom: 56px !important; left: 0 !important; right: 0 !important; max-height: none !important; padding: 16px 16px 12px !important;
+    background: oklch(7% 0.006 264); border-top: 1px solid var(--line) !important; -webkit-mask-image: none !important; mask-image: none !important; }
+  body.one .thread.scrolled { -webkit-mask-image: linear-gradient(transparent 0, #000 32px) !important; mask-image: linear-gradient(transparent 0, #000 32px) !important; }
+  body.one .ask { left: 0 !important; right: 0 !important; }
+  body.one .reel { display: none !important; }
+  body.one .t-vex p { max-width: 88%; }
+  body.one .thread > li.t-card { padding: 0 12px !important; }
+  body.one .t-card .xc-checks li { margin: 0 -12px !important; padding-inline: 12px !important; height: 36px; }
+  body.one .t-card .xc-checks { margin: 0 -12px !important; }
+  body.one .t-card .xc-foot { margin: 0 -12px !important; padding: 0 12px !important; }
+  .risk { top: 8px !important; }
+}
+/* tablets: more room for her */
+@media (min-width: 601px) and (max-width: 900px) { body.one { --talk-top: 50%; } body.one .thread { padding: 20px 24px 16px !important; } body.one .t-vex p { font-size: 16px; } }
+/* short phones */
+@media (max-width: 900px) and (max-height: 700px) { body.one { --talk-top: 42%; } }
+/* v85 landscape phones and small landscape tablets: Kimm on the left, the talk on the right, like the desktop */
+@media (max-width: 900px) and (orientation: landscape) {
+  body.one { --side: 44%; }
+  body.one .hc-kimm { width: var(--side) !important; }
+  body.one .thread { top: 0 !important; left: var(--side) !important; bottom: 56px !important; border-top: 0 !important; border-left: 1px solid var(--line) !important; padding: 12px 16px !important; }
+  body.one .ask { left: var(--side) !important; border-left: 1px solid var(--line); }
+  body.one .t-vex p { max-width: 100%; font-size: 14px; }
+  .risk { --rk-s: 0.42 !important; top: 2px !important; }
+  body.one .hc-gascii { right: calc(100% - var(--side)) !important; }
+}
+/* v86 resize: nothing trails the layout while the window is dragged; a layout swap fades through */
+html.rs *, html.rs *::before, html.rs *::after { transition: none !important; }
+@keyframes hc-swap { from { opacity: 0; } to { opacity: 1; } }
+html.swap .hc-kimm canvas, html.swap .thread, html.swap .risk, html.swap .hc-gascii { animation: hc-swap 480ms var(--ease) both; }
+@media (prefers-reduced-motion: reduce) { html.swap .hc-kimm canvas, html.swap .thread, html.swap .risk, html.swap .hc-gascii { animation: none; } }

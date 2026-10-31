@@ -21,6 +21,14 @@
     $('#nav').classList.toggle('has-more', links.some(l => l.style.display === 'none'));
   };
   fitNav(); addEventListener('resize', fitNav); if (document.fonts) document.fonts.ready.then(fitNav);
+  /* while the window is being dragged nothing eases toward its new place (no element trails the layout);
+     and when the layout itself changes (desktop, sideways, portrait) the hero fades through the swap instead of jumping */
+  {
+    const H = document.documentElement; let rt = 0;
+    addEventListener('resize', () => { H.classList.add('rs'); clearTimeout(rt); rt = setTimeout(() => H.classList.remove('rs'), 220); }, { passive: true });
+    const swap = () => { if (RM) return; H.classList.remove('swap'); void H.offsetWidth; H.classList.add('swap'); setTimeout(() => H.classList.remove('swap'), 520); };
+    for (const q of ['(max-width: 900px)', '(max-width: 900px) and (orientation: landscape)', '(min-width: 601px)']) matchMedia(q).addEventListener('change', swap);
+  }
 
   /* hover: each cell's label rolls up, a copy rising from below */
   $$('.tb > span, .mega a > span').forEach(l => {
@@ -67,7 +75,11 @@
        a press sends a burst outward from where you pressed, work runs a charge along them, your call fills them blue */
     const cv = pad.querySelector('.vx-cv'), g2d = cv && cv.getContext('2d');
     let W = 0, H = 0, dpr = 1, n = 0, lv = [], vl = [], hx = -1, bursts = [], raf2 = 0, last2 = 0;
-    const size = () => { if (!cv) return; const r = cv.getBoundingClientRect(); dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; n = Math.max(12, Math.round(W / 22)); lv = Array(n).fill(0.15); vl = Array(n).fill(0); };
+    const size = () => { if (!cv) return; const r = cv.getBoundingClientRect(); dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; const m = Math.max(12, Math.round(W / 22));
+      /* a new width keeps the field as it was: the levels are resampled to the new count, and it is painted at once, so a drag never blanks or resets it */
+      const rs = (a, d) => Array.from({ length: m }, (_, i) => a.length ? a[Math.min(a.length - 1, Math.round(i * (a.length - 1) / Math.max(1, m - 1)))] : d);
+      lv = rs(lv, 0.15); vl = rs(vl, 0); if (frame.sp && frame.sp.length !== m) frame.sp = Float32Array.from(rs(Array.from(frame.sp), 0)); n = m;
+      if (raf2) { cancelAnimationFrame(raf2); frame(performance.now()); } };
     const frame = t => {
       raf2 = requestAnimationFrame(frame); if (!g2d || !W) return;
       const dt = Math.min(0.05, (t - (last2 || t)) / 1000); last2 = t; const s = t / 1000, st = pad.dataset.state;
@@ -660,7 +672,7 @@
       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setRisk(ks[Math.max(0, i - 1)]); segs[Math.max(0, i - 1)].focus(); } });
     setRisk(risk, true);
     /* centred on her head, not on the column: the rig draws her head a little left of the canvas middle (about 4% of its height) */
-    const cast = rk.parentElement, place = () => { const r = cast.getBoundingClientRect(); rk.style.left = (innerWidth > 900 ? r.width / 2 - r.height * 0.042 : r.width / 2) + 'px'; };
+    const cast = rk.parentElement, place = () => { const r = cast.getBoundingClientRect(); const land = innerWidth <= 900 && innerWidth > innerHeight; rk.style.left = (innerWidth > 900 ? r.width / 2 - r.height * 0.042 : land ? r.width * 0.22 : r.width / 2) + 'px'; };
     place(); new ResizeObserver(place).observe(cast);
   }
   /* header status: the runtime clock and what Vex is doing */

@@ -15,7 +15,10 @@
   const load = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   /* room above her head for the risk arc */
-  const TOP = () => small.matches ? 0.1 : Math.max(0.2, 172 / Math.max(1, host.clientHeight));
+  /* three layouts: desktop (wide), side (phone or small tablet held sideways: Kimm left, talk right), stack (portrait: Kimm above the talk) */
+  const side = matchMedia('(max-width: 900px) and (orientation: landscape)');
+  const mode = () => !small.matches ? 'wide' : side.matches ? 'side' : 'stack';
+  const TOP = () => { const H = Math.max(1, host.clientHeight), m = mode(); return m === 'stack' ? Math.max(0.08, 66 / H) : m === 'side' ? Math.max(0.1, 64 / H) : Math.max(0.2, 172 / H); };
 
   /* what each moment looks like: hand toggles, marks, face */
   const HANDS = ['T4', 'T5', 'T6', 'T7', 'T8'];
@@ -109,20 +112,25 @@
     const PIXI = window.PIXI; if (!PIXI || !PIXI.live2d) { tell(0.9, 'vex'); return; }
     const canvas = host.querySelector('canvas');
     const dpr = Math.min(2, devicePixelRatio || 1);
-    app = new PIXI.Application({ view: canvas, backgroundAlpha: 0, antialias: true, resolution: dpr, autoDensity: true, resizeTo: host });
+    app = new PIXI.Application({ view: canvas, backgroundAlpha: 0, antialias: true, resolution: dpr, autoDensity: false, width: Math.max(1, host.clientWidth), height: Math.max(1, host.clientHeight) });
     try { model = await PIXI.live2d.Live2DModel.from(MODEL, { autoInteract: false, motionPreload: 'IDLE' }); } catch (e) { app.destroy(); tell(0.9, 'vex'); return; }
     tell(0.9, 'vex');
     app.stage.addChild(model);
     const im = model.internalModel; core = im.coreModel; im.breath = undefined;
     const pid = core.getModel().parameters.ids; for (let i = 0; i < pid.length; i++) ids[pid[i]] = i;
+    /* the renderer follows her box in the same frame the box changes, so she never stretches or jumps while the window is dragged */
     const fit = () => {
-      const W = host.clientWidth, H = host.clientHeight, mw = im.width, mh = im.height;
-      const crop = +(host.dataset.crop || (small.matches ? 0.42 : 0.6));              /* show the head down to the waist */
-      const s = H / (mh * crop); model.scale.set(s);
-      model.x = (W - mw * s) / 2 + W * +(host.dataset.shift || 0); model.y = H * TOP() + hop;
+      const W = Math.max(1, host.clientWidth), H = Math.max(1, host.clientHeight), mw = im.width, mh = im.height;
+      if (app.renderer.width !== Math.round(W * dpr) || app.renderer.height !== Math.round(H * dpr)) app.renderer.resize(W, H);
+      /* desktop: head to waist. Portrait phone: head and shoulders above the talk. Sideways: a little more of her */
+      const m = mode(), crop = +(host.dataset.crop || (m === 'stack' ? 0.78 : m === 'side' ? 0.5 : 0.6));
+      /* height sets her size, but never wider than her column: a narrow window shrinks her instead of cutting her arms */
+      const s = Math.min(H / (mh * crop), W / (mw * (m === 'wide' ? 0.62 : m === 'side' ? 0.46 : 0.7))); model.scale.set(s);
+      model.x = (W - mw * s) / 2 + W * +(host.dataset.shift || 0); model.y = H * TOP() + (RM ? 0 : jy);
       fit.s = s; fit.mw = mw; fit.mh = mh;
+      app.render();
     };
-    fit(); new ResizeObserver(fit).observe(host);
+    fit(); new ResizeObserver(fit).observe(host); host._fit = fit;
     /* every frame: ease each driven parameter toward its target, after the motions and physics inputs */
     const put = (id, v) => { const i = ids[id]; if (i !== undefined) core.setParameterValueByIndex(i, v); };
     im.on('beforeModelUpdate', () => {
