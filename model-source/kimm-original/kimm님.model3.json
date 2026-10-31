@@ -1,0 +1,25 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "kimm님.moc3",
+		"Textures": [
+			"kimm님.8192/texture_00.png",
+			"kimm님.8192/texture_01.png",
+			"kimm님.8192/texture_02.png"
+		],
+		"Physics": "kimm님.physics3.json",
+		"DisplayInfo": "kimm님.cdi3.json"
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": []
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		}
+	]
+}

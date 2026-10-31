@@ -15,7 +15,7 @@
   const load = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   /* room above her head for the risk arc */
-  const TOP = () => small.matches ? 0.1 : 0.2;
+  const TOP = () => small.matches ? 0.1 : Math.max(0.2, 172 / Math.max(1, host.clientHeight));
 
   /* what each moment looks like: hand toggles, marks, face */
   const HANDS = ['T4', 'T5', 'T6', 'T7', 'T8'];

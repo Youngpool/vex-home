@@ -1,0 +1,41 @@
+<!doctype html><script>
+/* the page's music generator, scheduled ahead into an OfflineAudioContext: 32 bars, keep the second 16 (warm reverb, loops clean) */
+(async () => {
+  const SR = 48000, BPM = 92, S16 = 60 / BPM / 4, BARS = 16, LOOP = BARS * 16 * S16;
+  const ctx = new OfflineAudioContext(2, Math.ceil(SR * LOOP * 2), SR);
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  const PROG = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]];
+  const NB = ctx.createBuffer(1, SR * 0.5, SR); { const d = NB.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const master = ctx.createGain(); master.gain.value = 0.22;
+  const comp = ctx.createDynamicsCompressor(); master.connect(comp); comp.connect(ctx.destination);
+  const verb = ctx.createGain(), cv = ctx.createConvolver(), len = SR * 2.6, ir = ctx.createBuffer(2, len, SR);
+  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+  cv.buffer = ir; const wet = ctx.createGain(); wet.gain.value = 0.55; verb.connect(master); verb.connect(cv); cv.connect(wet); wet.connect(master);
+  const dly = ctx.createGain(), dl = ctx.createDelay(1), fb = ctx.createGain(); dl.delayTime.value = S16 * 3; fb.gain.value = 0.35;
+  dly.connect(master); dly.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(master);
+  const env = (g, t, a, peak, d) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); };
+  const voice = (type, f, t, a, peak, d, to, cut) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); let n = o; if (cut) { const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cut; o.connect(lp); n = lp; } n.connect(g); g.connect(to || master); env(g, t, a, peak, d); o.start(t); o.stop(t + a + d + 0.05); return o; };
+  const hit = (t, hp, peak, d, to) => { const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = NB; f.type = 'highpass'; f.frequency.value = hp; s.connect(f); f.connect(g); g.connect(to || master); env(g, t, 0.002, peak, d); s.start(t); s.stop(t + d + 0.05); };
+  const kick = t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.18); o.connect(g); g.connect(master); env(g, t, 0.003, 0.55, 0.32); o.start(t); o.stop(t + 0.4); };
+  for (let step = 0; step < BARS * 16 * 2; step++) {
+    const t = 0.02 + step * S16, s = step % 16, bar = Math.floor(step / 16) % 4, ch = PROG[bar];
+    if (s === 0) ch.forEach(m => [-7, 7].forEach(dt => { const o = voice('sawtooth', hz(m), t, 0.9, 0.022, 16 * S16, verb, 1100); o.detune.value = dt; }));
+    if (s % 2 === 0) voice('sawtooth', hz(ch[0] - 24), t, 0.01, 0.12, S16 * 1.6, null, 320);
+    if (s === 0 || s === 8 || s === 10) kick(t);
+    if (s === 4 || s === 12) hit(t, 1400, 0.12, 0.16, verb);
+    if (s % 2 === 1) hit(t, 7000, 0.025, 0.03);
+    const arp = [ch[0] + 12, ch[1] + 12, ch[2] + 12, ch[1] + 24];
+    if (s % 2 === 0) voice('triangle', hz(arp[(s / 2) % 4]), t, 0.005, 0.03, S16 * 1.5, dly);
+  }
+  const buf = await ctx.startRendering();
+  const a = Math.round((0.02 + LOOP) * SR), n = Math.round(LOOP * SR);
+  /* 16-bit stereo wav of the second pass */
+  const out = new DataView(new ArrayBuffer(44 + n * 4)), ws = (o, s) => [...s].forEach((c, i) => out.setUint8(o + i, c.charCodeAt(0)));
+  ws(0, 'RIFF'); out.setUint32(4, 36 + n * 4, true); ws(8, 'WAVEfmt '); out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 2, true);
+  out.setUint32(24, SR, true); out.setUint32(28, SR * 4, true); out.setUint16(32, 4, true); out.setUint16(34, 16, true); ws(36, 'data'); out.setUint32(40, n * 4, true);
+  const L = buf.getChannelData(0), R = buf.getChannelData(1);
+  for (let i = 0; i < n; i++) { out.setInt16(44 + i * 4, Math.max(-1, Math.min(1, L[a + i])) * 32767, true); out.setInt16(46 + i * 4, Math.max(-1, Math.min(1, R[a + i])) * 32767, true); }
+  const bytes = new Uint8Array(out.buffer); let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  window.WAV = btoa(bin); document.title = 'done ' + LOOP.toFixed(2);
+})();
+</script>

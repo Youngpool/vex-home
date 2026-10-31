@@ -24,9 +24,10 @@ t = t.replace('{{HAIRLINE}}', hl)
 
 # Vex's voice: every mp3 in voice/ becomes window.VEX_VOICE[name]
 vo = {p.stem: 'data:audio/mpeg;base64,' + base64.b64encode(p.read_bytes()).decode() for p in sorted((ROOT / 'voice').glob('*.mp3'))}
-t = t.replace('{{VOICE}}', '<script>window.VEX_VOICE=' + json.dumps(vo) + '</script>')
+av = 'data:image/webp;base64,' + base64.b64encode((SRC / 'user-avatar.webp').read_bytes()).decode()
+t = t.replace('{{VOICE}}', '<script>window.VEX_VOICE=' + json.dumps(vo) + ';window.VEX_USER_AVATAR="' + av + '"</script>')
 
-t = t.replace('{{SCRIPT}}', ''.join('<script>\n' + read(SRC / f) + '</script>\n' for f in ('v7.js', 'dial.js', 'kimm.js')))
+t = t.replace('{{SCRIPT}}', ''.join('<script>\n' + read(SRC / f) + '</script>\n' for f in ('v7.js', 'dial.js', 'cursor.js', 'reel.js', 'gradient-ascii.js', 'kimm.js')))
 
 fonts = [('Be Vietnam Pro', f'be-vietnam-pro-latin-{w}-normal.woff2', w) for w in (300, 400, 600)] + [('Roboto Mono', 'roboto-mono-latin-400-normal.woff2', 400)]
 t = t.replace('/*FONTS*/', ''.join(
@@ -34,10 +35,11 @@ t = t.replace('/*FONTS*/', ''.join(
     f'src:url(data:font/woff2;base64,{base64.b64encode((SRC / "fonts" / f).read_bytes()).decode()}) format("woff2")}}\n' for n, f, w in fonts))
 
 if not CDN:
-    t = t.replace('https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/', 'lib/')
+    t = t.replace('https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/', 'lib/').replace('https://cdn.jsdelivr.net/npm/mouse-follower@1.1.2/dist/', 'lib/')
     t = t.replace('<head>', '<head><script>window.KIMM_LIBS=["lib/live2dcubismcore.min.js","lib/pixi.min.js","lib/cubism4.min.js"]</script>', 1)
 
 DIST.mkdir(exist_ok=True)
 (DIST / 'index.html').write_text(t, encoding='utf-8')
 shutil.copytree(ROOT / 'model', DIST / 'kimm', dirs_exist_ok=True)
+shutil.copytree(ROOT / 'reel', DIST / 'reel', dirs_exist_ok=True)
 print('built dist/index.html', len(t) // 1024, 'KB', '(cdn libraries)' if CDN else '(local libraries in dist/lib)')

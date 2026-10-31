@@ -1,0 +1,36 @@
+{
+    "Type": "Live2D Expression",
+    "IsModelCustomizationExpression": false,
+    "Parameters": [
+        {
+            "Id": "FeceAngry",
+            "Value": 0.3975405693054199,
+            "Blend": "Add"
+        },
+        {
+            "Id": "E1",
+            "Value": 1.0,
+            "Blend": "Add"
+        },
+        {
+            "Id": "ParamMouthForm",
+            "Value": -1.0,
+            "Blend": "Add"
+        },
+        {
+            "Id": "ParamEyeRSmile",
+            "Value": 0.0,
+            "Blend": "Add"
+        },
+        {
+            "Id": "BrowY_R",
+            "Value": -1.0,
+            "Blend": "Add"
+        },
+        {
+            "Id": "Brow_R",
+            "Value": -1.0,
+            "Blend": "Add"
+        }
+    ]
+}

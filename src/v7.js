@@ -72,21 +72,29 @@
       raf2 = requestAnimationFrame(frame); if (!g2d || !W) return;
       const dt = Math.min(0.05, (t - (last2 || t)) / 1000); last2 = t; const s = t / 1000, st = pad.dataset.state;
       g2d.setTransform(dpr, 0, 0, dpr, 0, 0); g2d.clearRect(0, 0, W, H);
-      /* full bleed: one row of upright cells, edge to edge and top to bottom, like the loader; a cell's level is its brightness */
-      const gap = 3, bw = (W - gap * (n - 1)) / n;
+      /* full bleed: one row of upright cells, edge to edge and top to bottom. Dark at rest but alive:
+         a slow wave rolls through, a soft scanner crosses every few seconds, single cells spark and fade */
+      const gap = 3, bw = (W - gap * (n - 1)) / n, breath = 0.85 + 0.15 * Math.sin(s * 0.9);
+      if (!frame.sp || frame.sp.length !== n) frame.sp = new Float32Array(n);
+      const sp = frame.sp, scan = ((s * 0.22) % 1.6) - 0.3;
       bursts = bursts.filter(b => t - b.t0 < 1400);
       for (let i = 0; i < n; i++) {
         const x = i * (bw + gap) + bw / 2, u = i / (n - 1);
-        let goal = 0.08 + 0.06 * (0.5 + 0.5 * Math.sin(s * 1.7 + i * 0.55)) * (0.5 + 0.5 * Math.sin(s * 0.9 - i * 0.21));
-        if (st === 'busy') { const ph = (s * 0.6) % 1.15; goal = u <= ph ? (ph - u < 0.05 ? 0.85 : 0.5) : 0.08; }
-        if (st === 'approve') goal = 0.42 + 0.06 * Math.sin(s * 3.2 + i * 0.35);
-        if (hx >= 0) goal = Math.max(goal, 0.1 + 0.4 * Math.exp(-Math.pow((x - hx) / 90, 2)));
+        if (!RM && Math.random() < 0.0035) sp[i] = Math.max(sp[i], 0.08 + Math.random() * 0.1);
+        sp[i] *= Math.exp(-dt * 2.4);
+        const wave = Math.pow(0.5 + 0.5 * Math.sin(s * 1.6 - i * 0.32), 3) * 0.05 + Math.pow(0.5 + 0.5 * Math.sin(s * 0.7 + i * 0.13), 4) * 0.035;
+        /* always loading, left to right: a slow fill sweeps across at rest, a faster one while she works */
+        const sweep = (s * 0.16) % 1.25, fillIdle = u <= sweep ? (sweep - u < 0.04 ? 0.32 : 0.12 + wave * 0.6) : 0.02 + wave * 0.3;
+        let goal = fillIdle + sp[i] * 0.4;
+        if (st === 'busy') { const ph = (s * 0.6) % 1.15; goal = u <= ph ? (ph - u < 0.04 ? 0.55 : 0.2 + wave * 1.5) : 0.03 + wave * 0.6 + sp[i] * 0.5; }
+        if (st === 'approve') goal = 0.16 + 0.07 * (0.5 + 0.5 * Math.sin(s * 3.2 - i * 0.4)) + sp[i] * 0.5;
+        if (hx >= 0) goal = Math.max(goal, 0.05 + 0.2 * Math.exp(-Math.pow((x - hx) / 80, 2)));
         let hot = 0;
-        for (const b of bursts) { const r = (t - b.t0) * 1.6, d = Math.abs(x - b.x), k = Math.max(0, 1 - Math.abs(d - r) / 70) * Math.max(0, 1 - (t - b.t0) / 1400); hot = Math.max(hot, k); goal = Math.max(goal, k * 0.8); }
+        for (const b of bursts) { const r = (t - b.t0) * 1.6, d = Math.abs(x - b.x), k = Math.max(0, 1 - Math.abs(d - r) / 70) * Math.max(0, 1 - (t - b.t0) / 1400); hot = Math.max(hot, k); goal = Math.max(goal, k * 0.6); }
         /* each cell eases on a spring, so a wave swells and settles */
         const a = -2 * 9 * vl[i] - 81 * (lv[i] - goal); vl[i] += a * dt; lv[i] += vl[i] * dt;
         const lvl = Math.max(0, Math.min(1, lv[i]));
-        g2d.fillStyle = `rgba(255,255,255,${(0.05 + 0.8 * lvl).toFixed(3)})`; g2d.fillRect(x - bw / 2, 0, bw, H);
+        g2d.fillStyle = `rgba(255,255,255,${(0.014 + lvl * 0.55).toFixed(3)})`; g2d.fillRect(x - bw / 2, 0, bw, H);
       }
     };
     const burst = e => {
@@ -229,7 +237,8 @@
   /* every line carries its time from the start of the order, like a log */
   let tz = performance.now();
   const tc = () => 'T+' + ((performance.now() - tz) / 1000).toFixed(1).padStart(4, '0');
-  const you = text => push(el('li', 't-you', `<p>${text}</p><span class="uav" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4a4 4 0 110 8 4 4 0 010-8zM4.5 20c.8-4 3.8-6.2 7.5-6.2s6.7 2.2 7.5 6.2z"/></svg></span>`));
+  const UAV = window.VEX_USER_AVATAR || '';
+  const you = text => push(el('li', 't-you', `<p>${text}</p><span class="uav" aria-hidden="true">${UAV ? `<img src="${UAV}" alt="">` : ''}</span>`));
   /* her line types itself while her mouth moves */
   /* ================= voice: Vex says her lines aloud; her mouth follows the sound =================
      Lines are pre-rendered in her voice (Kokoro, the "G bright cute" blend). Sound starts after your first touch, as browsers require */
@@ -290,6 +299,8 @@
       start(b); return b.duration;
     };
     addEventListener('pointerdown', unlock, { passive: true }); addEventListener('keydown', unlock);
+    document.addEventListener('visibilitychange', () => { if (!ctx) return; if (document.hidden) { stop(); ctx.suspend(); } else ctx.resume(); });
+    addEventListener('pagehide', () => { stop(); if (ctx) { try { ctx.close(); } catch (e) {} } });
     return { pick: id => (id && SRC[id] ? takeOf(id) : id), has: id => !!(id && SRC[id]), canLive: () => on && !!ctx && !!window.speechSynthesis, live, play, stop, level, speaking: () => !!cur || !!synth, get on() { return on; }, set(v) { on = v; try { localStorage.setItem('vexVoice', v ? 'on' : 'off'); } catch (e) {} if (v) unlock(); else stop(); } };
   })();
   window.vexVoice = Voice;
@@ -302,7 +313,7 @@
      It starts on your first touch, as browsers require, and the switch in the footer turns it off; the choice is remembered */
   const Music = (() => {
     let on = true; try { on = localStorage.getItem('vexMusic') !== 'off'; } catch (e) {}
-    let ctx = null, master = null, timer = 0, step = 0, nextT = 0, started = false, verb = null, dly = null;
+    let ctx = null, master = null, timer = 0, step = 0, nextT = 0, started = false, verb = null, dly = null, hush = false;
     const BPM = 92, S16 = 60 / BPM / 4, VOL = 0.22;
     const hz = m => 440 * Math.pow(2, (m - 69) / 12);
     /* Am, F, C, G: one bar each */
@@ -330,7 +341,7 @@
         nextT += S16; step++;
       }
       /* duck under her voice */
-      const V = window.vexVoice, want = on ? (V && V.speaking() ? VOL * 0.35 : VOL) : 0.0001;
+      const V = window.vexVoice, want = on && !hush ? (V && V.speaking() ? VOL * 0.35 : VOL) : 0.0001;
       master.gain.setTargetAtTime(want, ctx.currentTime, 0.12);
     };
     const build = () => {
@@ -352,8 +363,13 @@
       started = true; nextT = ctx.currentTime + 0.1; timer = setInterval(tick, 25);
     };
     addEventListener('pointerdown', start, { passive: true }); addEventListener('keydown', start);
-    return { get on() { return on; }, set(v) { on = v; try { localStorage.setItem('vexMusic', v ? 'on' : 'off'); } catch (e) {} if (v) start(); }, playing: () => started && on };
+    /* sound stops with the page: a hidden tab is silent, a closed or frozen one is shut down */
+    document.addEventListener('visibilitychange', () => { if (!ctx) return; if (document.hidden) { ctx.suspend(); } else if (on) { ctx.resume(); } });
+    addEventListener('pagehide', () => { if (ctx) { clearInterval(timer); try { ctx.close(); } catch (e) {} ctx = null; started = false; } });
+    addEventListener('blur', () => { if (ctx && document.hidden) ctx.suspend(); });
+    return { get on() { return on; }, set(v) { on = v; try { localStorage.setItem('vexMusic', v ? 'on' : 'off'); } catch (e) {} if (v) start(); }, playing: () => started && on, hush: v => { hush = v; } };
   })();
+  window.vexMusic = Music;
   const musicBtn = $('#vxMusic');
   const musicUI = () => { if (!musicBtn) return; musicBtn.setAttribute('aria-pressed', String(Music.on)); musicBtn.querySelector('.vv-t').textContent = 'Music'; };
   if (musicBtn) { musicUI(); musicBtn.addEventListener('click', () => { Music.set(!Music.on); musicUI(); }); }
@@ -362,13 +378,22 @@
   /* her line types itself in step with her voice, then she finishes the sentence before moving on */
   /* other takes of her lines: the words on screen follow the take she says */
   const TAKES = { hi2: 'Hi. I’m Vex. Give me an order.', nudge2: 'Your move.', nudge3: 'Want another order?', swap3b: 'Done. Signed by you.', ape2b: 'No. That breaks your limits. Nothing signed.' };
+  /* her words land as a wave: each new character fades up through a light gradient (pale blue, white) into the text colour,
+     so a bright band trails the typing head across the line. Finished words settle into plain text */
+  const wave = (p, text, k) => {
+    let n = +(p.dataset.n || 0); if (k <= n) return;
+    const frag = document.createDocumentFragment();
+    for (; n < k; n++) { const ch = text[n]; if (ch === ' ') { frag.appendChild(document.createTextNode(' ')); continue; } const s = document.createElement('span'); s.className = 'gw'; s.textContent = ch; frag.appendChild(s); }
+    p.appendChild(frag); p.dataset.n = n;
+  };
+  const settle = (p, text) => { p.dataset.n = text.length; setTimeout(() => { if (p.isConnected) p.textContent = text; }, 1200); };
   const vex = async (text, cls = '', id = '') => {
     const li = push(el('li', 't-vex' + (cls ? ' ' + cls : ''), `<div class="tx"><p></p></div>`)), p = li.querySelector('p');
     const take = Voice.pick(id); if (TAKES[take]) text = TAKES[take];
     if (!Voice.has(take) && Voice.canLive() && !RM && !rush) {
       const li = push(el('li', 't-vex typing' + (cls ? ' ' + cls : ''), `<div class="tx"><p></p></div>`)), p = li.querySelector('p');
-      K('say', text); await Voice.live(text, k => { if (li.isConnected) p.textContent = text.slice(0, k); });
-      p.textContent = text; li.classList.remove('typing'); return li;
+      K('say', text); await Voice.live(text, k => { if (li.isConnected) wave(p, text, k); });
+      wave(p, text, text.length); settle(p, text); li.classList.remove('typing'); return li;
     }
     const dur = await Voice.play(take, text), t0 = performance.now();
     li.classList.add('typing');
@@ -377,11 +402,11 @@
     /* time-based, so a slow frame catches up instead of falling behind the voice */
     const total = dur ? dur * 900 : text.length * 26;
     await new Promise(r => { const f = () => {
-      if (!li.isConnected || rush) { p.textContent = text; return r(); }
+      if (!li.isConnected || rush) { wave(p, text, text.length); return r(); }
       const k = Math.min(text.length, Math.ceil(text.length * (performance.now() - t0) / total));
-      p.textContent = text.slice(0, k); if (k >= text.length) r(); else requestAnimationFrame(f);
+      wave(p, text, k); if (k >= text.length) r(); else requestAnimationFrame(f);
     }; f(); });
-    li.classList.remove('typing');
+    li.classList.remove('typing'); settle(p, text);
     if (dur && !rush) await beat(dur * 1000 - (performance.now() - t0) + 120);
     return li;
   };
@@ -418,46 +443,80 @@
       if (u >= 0.42) h = Math.min(h, CEIL + 30 + rnd() * 40);
       C.push({ o, h, l, c, v: 0.3 + rnd() * 0.5 + Math.abs(c - o) / 700 }); pr = c;
     }
-    const W = 600, X1 = 532, Y0 = 14, Y1 = 170, V0 = 182, V1 = 222;
-    const lo = Math.min(...C.map(k => k.l)) - 150, hi = Math.max(...C.map(k => k.h)) + 150;
-    const y = p => Y0 + (hi - p) / (hi - lo) * (Y1 - Y0), step = X1 / n, bw = step * 0.56, x = i => step * i + step / 2;
-    const lvl = CEIL;
-    /* swing lows: lowest of their neighbours, each above the one before */
+    /* modern card chart: dotted field, standard green/red candles, a smooth EMA in a green-to-blue stroke over a hatched area,
+       price chips on the left, date chips below, value badges on the right, a cursor line that reads any candle */
+    const W = 640, PX0 = 60, X1 = 488, Y0 = 26, Y1 = 236, VH = 292, f1 = v => v.toFixed(1);
+    const lo = Math.min(...C.map(k => k.l)) - 250, hi = Math.max(...C.map(k => k.h)) + 250;
+    const y = p => Y0 + (hi - p) / (hi - lo) * (Y1 - Y0), step = (X1 - PX0) / n, bw = step * 0.58, x = i => PX0 + step * i + step / 2;
+    const lvl = CEIL, fmt = v => Math.round(v).toLocaleString('en-US');
     const lows = []; for (let i = Math.round(n * 0.4); i < n - 2; i++) { const w = C.slice(i - 3, i + 3).map(k => k.l); if (C[i].l === Math.min(...w) && (!lows.length || C[i].l > C[lows[lows.length - 1]].l)) lows.push(i); }
-    const HL = lows.slice(-3), fmt = v => Math.round(v).toLocaleString('en-US'), vmax = Math.max(...C.map(k => k.v));
-    const ticks = [0, 1, 2, 3].map(t => lo + (hi - lo) * (0.12 + t * 0.26));
-    const last = C[n - 1], ny = Math.max(y(last.c), y(lvl) + 20);
+    const HL = lows.slice(-3);
+    const ticks = []; for (let t = Math.ceil(lo / 1000) * 1000; t < hi; t += 1000) ticks.push(t);
+    const t1 = new Date(); t1.setMinutes(0, 0, 0); t1.setHours(Math.floor(t1.getHours() / 4) * 4);
+    const when = i => new Date(t1.getTime() - (n - 1 - i) * 4 * 3600e3);
+    const dlab = i => when(i).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    const tlab = i => dlab(i) + ' · ' + String(when(i).getHours()).padStart(2, '0') + ':00';
+    const ema = []; C.forEach((k, i) => ema.push(i ? ema[i - 1] + (k.c - ema[i - 1]) * (2 / 21) : k.c));
+    /* a smooth path through the EMA (Catmull-Rom to Bezier) */
+    const pts = ema.map((v, i) => [x(i), y(v)]);
+    let curve = `M${f1(pts[0][0])} ${f1(pts[0][1])}`;
+    for (let i = 0; i < pts.length - 1; i++) { const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      curve += `C${f1(p1[0] + (p2[0] - p0[0]) / 6)} ${f1(p1[1] + (p2[1] - p0[1]) / 6)} ${f1(p2[0] - (p3[0] - p1[0]) / 6)} ${f1(p2[1] - (p3[1] - p1[1]) / 6)} ${f1(p2[0])} ${f1(p2[1])}`; }
+    const area = curve + `L${f1(pts[n - 1][0])} ${Y1}L${f1(pts[0][0])} ${Y1}Z`;
+    const vmax2 = Math.max(...C.map(k => k.v));
+    const last = C[n - 1], first = C[0], chg = (last.c - first.o) / first.o * 100;
     const gid = 'cx' + (++chartN);
-    const svg = `<svg class="cx" viewBox="0 0 ${W} 230" aria-hidden="true">
+    const dates = C.map((k, i) => i).filter(i => i % 8 === 3);
+    const svg = `<svg class="cx cx2" viewBox="0 0 ${W} ${VH}" aria-hidden="true">
       <defs>
-        <linearGradient id="${gid}g" gradientUnits="userSpaceOnUse" x1="0" x2="${X1}" y1="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="0.1"/></linearGradient>
-        <linearGradient id="${gid}l" gradientUnits="userSpaceOnUse" x1="0" x2="${X1}" y1="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.35" stop-color="#fff" stop-opacity="0.12"/><stop offset="1" stop-color="#fff" stop-opacity="0.6"/></linearGradient>
-        <linearGradient id="${gid}v" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="${Y0}" y2="${V1}"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.5" stop-color="#fff" stop-opacity="0.4"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <pattern id="${gid}dot" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="0.9" fill="#fff" fill-opacity="0.09"/></pattern>
+        <pattern id="${gid}hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="7" fill="#fff" fill-opacity="0.06"/></pattern>
+        <linearGradient id="${gid}ln" gradientUnits="userSpaceOnUse" x1="${PX0}" x2="${X1}" y1="0" y2="0"><stop offset="0" stop-color="#34d399"/><stop offset="0.55" stop-color="#22c4a8"/><stop offset="1" stop-color="#2f7bff"/></linearGradient>
+        <linearGradient id="${gid}cur" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="${Y1}"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.25" stop-color="#fff" stop-opacity="0.5"/><stop offset="1" stop-color="#fff" stop-opacity="0.5"/></linearGradient>
+        <clipPath id="${gid}clip"><rect x="0" y="0" width="${X1 + 2}" height="${Y1}"/></clipPath>
       </defs>
-      ${ticks.map(t => `<line class="cx-grid" stroke="url(#${gid}g)" x1="0" x2="${X1}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text class="cx-ax" x="${X1 + 10}" y="${(y(t) + 4).toFixed(1)}">${fmt(t)}</text>`).join('')}
-      <line class="cx-sep" stroke="url(#${gid}g)" x1="0" x2="${X1}" y1="${V0 - 6}" y2="${V0 - 6}"/>
-      ${C.map((k, i) => `<rect class="cx-vol${k.c >= k.o ? ' up' : ''}" style="--i:${i}" x="${(x(i) - bw / 2).toFixed(1)}" y="${(V1 - (V1 - V0) * k.v / vmax).toFixed(1)}" width="${bw.toFixed(1)}" height="${((V1 - V0) * k.v / vmax).toFixed(1)}"/>`).join('')}
-      <line class="cx-lvl" stroke="url(#${gid}l)" x1="0" x2="${X1}" y1="${y(lvl).toFixed(1)}" y2="${y(lvl).toFixed(1)}"/>
-      <polyline class="cx-hl" points="${HL.map(i => `${x(i).toFixed(1)},${(y(C[i].l) + 10).toFixed(1)}`).join(' ')}"/>
-      ${C.map((k, i) => `<g class="cx-c${k.c >= k.o ? ' up' : ''}" style="--i:${i}"><line x1="${x(i).toFixed(1)}" x2="${x(i).toFixed(1)}" y1="${y(k.h).toFixed(1)}" y2="${y(k.l).toFixed(1)}"/><rect x="${(x(i) - bw / 2).toFixed(1)}" y="${y(Math.max(k.o, k.c)).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, Math.abs(y(k.o) - y(k.c))).toFixed(1)}"/></g>`).join('')}
-      ${HL.map(i => `<path class="cx-mk" d="M${x(i).toFixed(1)} ${(y(C[i].l) + 6).toFixed(1)}l4 7h-8z"/>`).join('')}
-      <g class="cx-tag lv"><rect x="${X1 + 4}" y="${(y(lvl) - 9).toFixed(1)}" width="62" height="18"/><text x="${X1 + 10}" y="${(y(lvl) + 4).toFixed(1)}">${fmt(lvl)}</text></g>
-      <line class="cx-now" x1="${x(n - 1).toFixed(1)}" x2="${X1}" y1="${y(last.c).toFixed(1)}" y2="${y(last.c).toFixed(1)}"/>
-      <g class="cx-tag now"><rect x="${X1 + 4}" y="${(ny - 9).toFixed(1)}" width="62" height="18"/><text x="${X1 + 10}" y="${(ny + 4).toFixed(1)}">${fmt(last.c)}</text></g>
-      <line class="cx-x" stroke="url(#${gid}v)" x1="0" x2="0" y1="${Y0}" y2="${V1}"/>
-      <rect class="cx-hit" x="0" y="0" width="${X1}" height="230"/>
+      <rect class="cx2-bg" x="0.5" y="0.5" width="${X1 + 12}" height="${Y1 + 8}"/>
+      <rect x="1" y="1" width="${X1 + 11}" height="${Y1 + 7}" fill="url(#${gid}dot)"/>
+      <g clip-path="url(#${gid}clip)">
+        ${ticks.map(t => `<line class="cx2-grid" x1="${PX0}" x2="${X1}" y1="${f1(y(t))}" y2="${f1(y(t))}"/>`).join('')}
+        <path class="cx2-area" d="${area}" fill="url(#${gid}hatch)"/>
+        ${C.map((k, i) => { const vh = 34 * k.v / vmax2; return `<rect class="cx2-vol ${k.c >= k.o ? 'up' : 'dn'}" x="${f1(x(i) - bw / 2)}" y="${f1(Y1 - vh)}" width="${f1(bw)}" height="${f1(vh)}"/>`; }).join('')}
+        <line class="cx2-lvl" x1="${PX0}" x2="${X1}" y1="${f1(y(lvl))}" y2="${f1(y(lvl))}"/>
+        ${C.map((k, i) => `<g class="cx-c ${k.c >= k.o ? 'up' : 'dn'}" data-i="${i}" style="--i:${i}"><line x1="${f1(x(i))}" x2="${f1(x(i))}" y1="${f1(y(k.h))}" y2="${f1(y(k.l))}"/><rect x="${f1(x(i) - bw / 2)}" y="${f1(y(Math.max(k.o, k.c)))}" width="${f1(bw)}" height="${f1(Math.max(1.2, Math.abs(y(k.o) - y(k.c))))}" rx="1"/></g>`).join('')}
+        <path class="cx2-line" d="${curve}" stroke="url(#${gid}ln)"/>
+        ${HL.map(i => `<circle class="cx2-hl" cx="${f1(x(i))}" cy="${f1(y(C[i].l) + 9)}" r="2.2"/>`).join('')}
+      </g>
+      <line class="cx2-end" x1="${f1(x(n - 1))}" x2="${f1(x(n - 1))}" y1="0" y2="${Y1 + 8}"/>
+      <circle class="cx2-enddot" cx="${f1(x(n - 1))}" cy="${f1(y(ema[n - 1]))}" r="4.5"/>
+      <line class="cx2-gut" x1="${PX0 - 0.5}" x2="${PX0 - 0.5}" y1="1" y2="${Y1 + 8}"/>
+      ${ticks.map(t => `<text class="cx2-ax" x="${PX0 - 10}" y="${f1(y(t) + 3.5)}">${(t / 1000).toFixed(0)}K</text>`).join('')}
+      <line class="cx2-now" x1="${f1(x(n - 1))}" x2="${X1 + 20}" y1="${f1(y(last.c))}" y2="${f1(y(last.c))}"/>
+      <g class="cx2-badge"><text class="cap" x="${X1 + 22}" y="${f1(y(last.c) - 25)}">Last</text><rect x="${X1 + 20}" y="${f1(y(last.c) - 17)}" width="${W - X1 - 22}" height="34"/><circle class="g" cx="${X1 + 36}" cy="${f1(y(last.c))}" r="4.5"/><text class="v" x="${X1 + 48}" y="${f1(y(last.c) + 4.5)}">$${fmt(last.c)}</text></g>
+      <g class="cx2-badge"><text class="cap" x="${X1 + 22}" y="${f1(y(last.c) + 41)}">Ceiling</text><rect x="${X1 + 20}" y="${f1(y(last.c) + 49)}" width="${W - X1 - 22}" height="34"/><circle class="w" cx="${X1 + 36}" cy="${f1(y(last.c) + 66)}" r="4.5"/><text class="v" x="${X1 + 48}" y="${f1(y(last.c) + 70.5)}">$${fmt(lvl)}</text></g>
+      <g class="cx2-badge sm"><text class="cap" x="${X1 + 22}" y="${f1(y(last.c) + 107)}">EMA 20</text><rect x="${X1 + 20}" y="${f1(y(last.c) + 115)}" width="${W - X1 - 22}" height="34"/><circle class="b" cx="${X1 + 36}" cy="${f1(y(last.c) + 132)}" r="4.5"/><text class="v" x="${X1 + 48}" y="${f1(y(last.c) + 136.5)}">$${fmt(ema[n - 1])}</text></g>
+      ${dates.map(i => `<g class="cx2-date" data-d="${i}"><line x1="${f1(x(i))}" x2="${f1(x(i))}" y1="${Y1 + 8}" y2="${Y1 + 14}"/><text x="${f1(x(i))}" y="${Y1 + 30}">${dlab(i)}</text></g>`).join('')}
+      <g class="cx-xh"><line class="cx2-cur" stroke="url(#${gid}cur)" x1="0" x2="0" y1="0" y2="${Y1 + 8}"/><circle class="cx2-curdot" cx="0" cy="0" r="4"/>
+        <g class="cx2-tip"><rect x="0" y="0" width="120" height="24"/><text x="60" y="16"></text></g></g>
+      <rect class="cx-hit" x="0" y="0" width="${X1 + 12}" height="${Y1 + 8}"/>
     </svg>`;
     const read = k => `<span>O <b>${fmt(k.o)}</b></span><span>H <b>${fmt(k.h)}</b></span><span>L <b>${fmt(k.l)}</b></span><span>C <b class="${k.c >= k.o ? 'up' : 'dn'}">${fmt(k.c)}</b></span>`;
-    const li = el('li', 't-card t-chart', `<div class="xc-body">
-      <div class="xc-top mono"><span>BTC / USD · 4H</span><span class="xc-st">Sample</span></div>
-      <p class="cx-read mono">${read(last)}</p>
+    const li = el('li', 't-card t-chart t-chart2', `<div class="xc-body">
+      <div class="cx2-top"><span class="cx2-pill"><i aria-hidden="true"><b></b><b></b><b></b></i>BTC / USD · 4H</span><span class="cx-head"><b>${fmt(last.c)}</b><span class="${chg >= 0 ? 'up' : 'dn'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span></span></div>
       ${svg}
-      <p class="xc-foot mono cx-foot"><span>Level <b>${fmt(lvl)}</b></span><span>Higher lows <b>${HL.length}</b></span><span>Last <b>${fmt(last.c)}</b></span></p>
+      <p class="xc-foot mono cx-foot"><span>Pattern <b>Ascending triangle</b></span><span>Higher lows <b>${HL.length}</b></span><span>Range <b>${fmt(Math.min(...C.map(k => k.l)))} – ${fmt(Math.max(...C.map(k => k.h)))}</b></span><span class="xc-st">Sample</span></p>
     </div>`);
-    const sv = li.querySelector('svg'), xl = li.querySelector('.cx-x'), rd = li.querySelector('.cx-read');
-    const at = e => { const r = sv.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * W; return Math.max(0, Math.min(n - 1, Math.floor(px / step))); };
-    sv.addEventListener('pointermove', e => { const i = at(e); xl.setAttribute('x1', x(i)); xl.setAttribute('x2', x(i)); sv.classList.add('hov'); rd.innerHTML = read(C[i]); });
-    sv.addEventListener('pointerleave', () => { sv.classList.remove('hov'); rd.innerHTML = read(last); });
+    const sv = li.querySelector('svg'), xh = li.querySelector('.cx-xh'), cl = xh.querySelector('.cx2-cur'), cd = xh.querySelector('.cx2-curdot'), tip = xh.querySelector('.cx2-tip'), rd = li.querySelector('.cx-read');
+    const cs = [...sv.querySelectorAll('.cx-c')];
+    let cur = -1;
+    const pick = i => { if (i === cur) return; if (cur >= 0) cs[cur].classList.remove('on'); cur = i; if (i >= 0) cs[i].classList.add('on'); };
+    sv.addEventListener('pointermove', e => {
+      const r = sv.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * W;
+      const i = Math.max(0, Math.min(n - 1, Math.floor((px - PX0) / step))), X = x(i);
+      cl.setAttribute('x1', X); cl.setAttribute('x2', X); cd.setAttribute('cx', X); cd.setAttribute('cy', f1(y(ema[i])));
+      const tx = Math.max(4, Math.min(X1 + 8 - 120, X - 60)); tip.setAttribute('transform', `translate(${f1(tx)} 4)`); tip.querySelector('text').textContent = tlab(i);
+      sv.classList.add('hov'); pick(i);
+    });
+    sv.addEventListener('pointerleave', () => { sv.classList.remove('hov'); pick(-1); });
     return li;
   };
   let spam = 0, spoke = false, idleT = 0;
@@ -545,12 +604,16 @@
   if (gate) {
     /* no second screen: when loading ends, the page opens. Sound starts with the first touch, as browsers require */
     const go = () => {
-      gate.classList.add('out'); setTimeout(() => gate.remove(), 600); begin();
+      gate.classList.add('out'); setTimeout(() => gate.remove(), RM ? 0 : 700); begin();
       if (matchMedia('(pointer: fine)').matches && ask) setTimeout(() => ask.focus({ preventScroll: true }), 650);
     };
     /* loading: a count to 100 driven by what has actually arrived (type, the Vex model, her voice), never slower than 12s */
     const bars = $('#gateBars'), stepsEl = [];
-    const nb = Math.max(24, Math.round(innerWidth / 26)); bars.style.gridTemplateColumns = `repeat(${nb}, 1fr)`; bars.innerHTML = Array.from({ length: nb }, () => '<i></i>').join('');
+    /* the bar sits exactly where the vEXIT key will be, cut into the same cells, so loading hands straight over to the key */
+    const load = $('.gate-load'), padR = $('#vxPad').getBoundingClientRect();
+    const place = () => { const r = $('#vxPad').getBoundingClientRect(), o = load.offsetParent ? load.offsetParent.getBoundingClientRect() : { left: 0, top: 0 }; Object.assign(load.style, { left: '0px', top: 'auto', bottom: '0px', width: '100%', height: r.height + 'px' }); };
+    place(); addEventListener('resize', place); if (document.fonts) document.fonts.ready.then(place);
+    const nb = Math.max(18, Math.round(innerWidth / 22)); bars.style.gridTemplateColumns = `repeat(${nb}, 1fr)`; bars.innerHTML = Array.from({ length: nb }, () => '<i></i>').join('');
     const bi = [...bars.children];
     let goal = 0.08, shown = 0, done = false;
     const mark = (step, p) => { goal = Math.max(goal, p); stepsEl.forEach(li => { if (li.dataset.s === step) li.classList.add('ok'); }); };
@@ -564,13 +627,17 @@
       setTimeout(go, 320);
     };
     const tickLoad = () => {
-      if (done) return;
+      if (done) return; place();
       const el = performance.now() - t0;
       if (goal >= 0.9 && el > 900) { mark('voice', 1); }
       if (el > 12000) goal = 1;
-      shown += (goal - shown) * 0.08 + 0.0015; shown = Math.min(shown, goal);
+      /* steady, left to right: one constant speed (the whole bar in about 2.4 s), never past what has actually arrived;
+         if loading is slower, the bar waits at that point, then carries on at the same speed */
+      const now = performance.now(), dt = Math.min(0.05, (now - (tickLoad.last || now)) / 1000); tickLoad.last = now;
+      shown = Math.min(goal, shown + dt / 2.4);
       gate.setAttribute('aria-valuenow', String(Math.round(shown * 100)));
       const lit = Math.round(shown * nb); bi.forEach((b, k) => { b.classList.toggle('on', k < lit); b.classList.toggle('head', k === lit - 1); });
+      const lf = $('#glFill'); if (lf) lf.style.clipPath = `inset(0 ${(100 - shown * 100).toFixed(2)}% 0 0)`;
       if (shown >= 0.995) ready(); else requestAnimationFrame(tickLoad);
     };
     if (RM) { goal = 1; } requestAnimationFrame(tickLoad);
@@ -597,7 +664,7 @@
     place(); new ResizeObserver(place).observe(cast);
   }
   /* header status: the runtime clock and what Vex is doing */
-  const phSt = $('#phSt');
+  const phSt = null;
   new MutationObserver(() => { const st = padEl.dataset.state; if (phSt) { phSt.querySelector('b').textContent = st === 'approve' ? 'Awaiting you' : st === 'busy' ? 'Working' : 'Ready'; phSt.dataset.st = st; } }).observe(padEl, { attributes: true, attributeFilter: ['data-state'] });
   /* problems: each line is read word by word */
   /* signature: the step in view picks the drawing, which then acts it out once */

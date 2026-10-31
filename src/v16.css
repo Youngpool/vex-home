@@ -1995,3 +1995,295 @@ body.one .nav-burger[aria-expanded="true"] .nb-ic i { animation: none; }
 @media (prefers-reduced-motion: reduce) { .nav-burger:hover .nb-ic i { animation: none; } }
 /* the menu key: the grid alone, a square cell */
 body.one .nav > .nav-burger { justify-content: center; width: var(--nav, 76px); padding: 0; gap: 0; }
+
+
+
+/* ================= v66 her words land as a gradient wave ================= */
+.gw { display: inline-block; animation: gwin 1100ms cubic-bezier(.2, .7, .2, 1) both; will-change: transform, opacity; }
+@keyframes gwin {
+  0%   { opacity: 0; transform: translateY(0.32em); color: oklch(62% 0.16 264); filter: blur(3px); }
+  28%  { opacity: 1; transform: none; color: oklch(80% 0.12 250); filter: blur(0); }
+  55%  { color: oklch(98% 0.03 230); text-shadow: 0 0 10px oklch(100% 0 0 / 0.35); }
+  100% { color: inherit; text-shadow: none; }
+}
+body.one .t-vex.t-no .gw { animation-name: gwin-no; }
+@keyframes gwin-no { 0% { opacity: 0; transform: translateY(0.32em); color: oklch(55% 0.2 27); filter: blur(3px); } 30% { opacity: 1; transform: none; filter: blur(0); color: oklch(85% 0.12 40); } 100% { color: inherit; } }
+body.one .t-vex.t-ok .gw { animation-name: gwin-ok; }
+@keyframes gwin-ok { 0% { opacity: 0; transform: translateY(0.32em); color: oklch(55% 0.13 150); filter: blur(3px); } 30% { opacity: 1; transform: none; filter: blur(0); color: oklch(92% 0.1 150); } 100% { color: inherit; } }
+@media (prefers-reduced-motion: reduce) { .gw { animation: none; } }
+
+/* ================= v66 loader: the VEX mark revealed left to right as things arrive, the cell bar along the bottom;
+   when it is done the mark lifts and the screen draws up like a shutter ================= */
+body.one .gate { display: block; transition: transform 900ms cubic-bezier(.77, 0, .18, 1) 250ms, opacity 1ms 1200ms; }
+body.one .gate.out { opacity: 1; transform: translateY(-100%); pointer-events: none; }
+.gate-logo { position: absolute; left: 50%; top: 50%; width: clamp(120px, 14vw, 200px); aspect-ratio: 176 / 140; transform: translate(-50%, -50%); transition: transform 700ms cubic-bezier(.77, 0, .18, 1), opacity 500ms; }
+.gate-logo svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gl-base { color: oklch(100% 0 0 / 0.08); }
+.gl-fill { color: var(--white); clip-path: inset(0 100% 0 0); transition: clip-path 160ms linear; }
+.gate.out .gate-logo { transform: translate(-50%, -62%) scale(0.92); opacity: 0; }
+body.one .gate .gate-load { position: absolute; left: 0; right: 0; bottom: 0; top: auto; width: 100%; transform: none; }
+body.one .gate .gate-bars { height: 28px; border-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { body.one .gate, .gate-logo, .gl-fill { transition: none; } }
+
+/* ================= v66 the reel: a small loop in the corner that opens to fill the screen ================= */
+.reel { position: absolute; z-index: 4; left: 24px; bottom: 24px; display: block; width: 224px; padding: 0; border: 1px solid var(--line) !important; background: oklch(8% 0.006 264); color: var(--ink); text-align: left; overflow: hidden; transition: border-color 250ms, transform 400ms var(--ease); }
+.reel:hover { border-color: var(--line-hi) !important; transform: translateY(-2px); }
+.reel:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
+.reel-v { display: block; aspect-ratio: 16 / 9; overflow: hidden; background: oklch(6% 0.006 264); }
+.reel-v video { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 300ms, transform 600ms var(--ease); }
+.reel:hover .reel-v video { opacity: 1; transform: scale(1.04); }
+.reel-l { position: absolute; left: 0; bottom: 0; display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px 0 8px; background: oklch(8% 0.006 264); border-top: 1px solid var(--line); border-right: 1px solid var(--line); font: 500 11px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; }
+.reel-l svg { width: 14px; height: 14px; fill: currentColor; }
+.reel-l b { font-weight: 500; }
+.reel-t { position: absolute; right: 8px; bottom: 8px; font: 500 10px/1 var(--font); letter-spacing: 0.06em; color: oklch(100% 0 0 / 0.7); font-variant-numeric: tabular-nums; }
+.reel-full { position: fixed; inset: 0; z-index: 2500; background: oklch(4% 0.006 264 / 0); transition: background-color 600ms var(--ease); }
+.reel-full.in { background: oklch(4% 0.006 264 / 0.94); }
+.rf-frame { position: fixed; overflow: hidden; border: 1px solid var(--line); background: #000; will-change: transform; }
+.rf-frame video { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 1; transform: none; }
+.rf-bar { position: fixed; left: 50%; bottom: 24px; display: flex; align-items: center; gap: 0; width: min(86vw, 900px); height: 48px; transform: translateX(-50%) translateY(16px); opacity: 0; border: 1px solid var(--line); background: oklch(9% 0.006 264); transition: opacity 400ms 300ms, transform 500ms 300ms var(--ease); }
+.reel-full.in .rf-bar { opacity: 1; transform: translateX(-50%); }
+.rf-bar button { flex: none; display: grid; place-items: center; width: 48px; height: 100%; padding: 0; border: 0; border-right: 1px solid var(--line); background: none; color: var(--ink); }
+.rf-bar button:hover { background: oklch(100% 0 0 / 0.06); }
+.rf-bar button:focus-visible { outline: 2px solid var(--white); outline-offset: -2px; }
+.rf-bar .rf-x { border-right: 0; border-left: 1px solid var(--line); margin-left: 0; }
+.rf-bar svg { width: 18px; height: 18px; fill: currentColor; }
+.rf-cur, .rf-dur { flex: none; padding: 0 14px; font: 500 11px/1 var(--font); letter-spacing: 0.06em; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rf-prog { position: relative; flex: 1; height: 100%; cursor: pointer; }
+.rf-prog::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--line-hi); }
+.rf-prog i { position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 3px; background: var(--white); transform-origin: left; transform: scaleX(0); }
+@media (max-width: 900px) { .reel { left: 12px; bottom: 12px; width: 150px; } .reel-t { display: none; } }
+@media (prefers-reduced-motion: reduce) { .reel, .reel-v video, .rf-bar, .reel-full { transition: none; } }
+
+/* ================= v66 Kimm stands in a Gradient ASCII glow (React Bits, ported) ================= */
+.hc-gascii { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hc-gascii canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.hc-cast > .stage { position: relative; z-index: 1; }
+html.has-gascii .hc-ascii { opacity: 0; }
+body.one .reel[hidden] { display: none !important; }
+/* your avatar in the chat: the portrait, round, a hairline ring */
+body.one .uav { width: 34px; height: 34px; overflow: hidden; background: oklch(20% 0.004 264); box-shadow: 0 0 0 1px var(--line-hi); }
+body.one .uav img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 900px) { body.one .uav { width: 28px; height: 28px; } }
+
+/* ================= v69 the cursor: one disc, difference blend, GSAP quickTo ================= */
+html.cur-on, html.cur-on body, html.cur-on body * { cursor: none !important; }
+html.cur-on input, html.cur-on textarea { cursor: text !important; }
+.cur { position: fixed; left: 0; top: 0; z-index: 3000; pointer-events: none; mix-blend-mode: difference; opacity: 0; transition: opacity 250ms; will-change: transform; }
+.cur.in { opacity: 1; }
+.cur.off { opacity: 0; }
+.cur-d { display: block; width: 12px; height: 12px; border-radius: 50% !important; background: #fff; transition: transform 350ms cubic-bezier(.3, 1.4, .5, 1); }
+.cur.hot .cur-d { transform: scale(3.4); }
+.cur.down .cur-d { transform: scale(0.6); }
+.cur.hot.down .cur-d { transform: scale(2.8); }
+@media (prefers-reduced-motion: reduce) { .cur-d { transition: none; } }
+body.one .cur .cur-d { border-radius: 50% !important; }
+/* no difference blend: it turned the blue buttons orange and inverted Kimm. A white dot; over a target, a soft white disc */
+.cur { mix-blend-mode: normal; }
+.cur-d { background: var(--white); box-shadow: 0 0 0 1px oklch(0% 0 0 / 0.25); transition: transform 350ms cubic-bezier(.3, 1.4, .5, 1), background-color 250ms, box-shadow 250ms; }
+.cur.hot .cur-d { background: oklch(100% 0 0 / 0.16); box-shadow: inset 0 0 0 0.4px oklch(100% 0 0 / 0.8); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+.cur.hot .cur-d { -webkit-backdrop-filter: none; backdrop-filter: none; background: oklch(100% 0 0 / 0.1); }
+
+/* ================= v70 the reel, after the "video recap" card, in blue; aligned to the column:
+   left edge on the claim's text edge, bottom on the column's bottom margin (40px above the footer rule) ================= */
+body.one .reel { left: 0; bottom: 0; width: clamp(200px, 17vw, 260px); border: 0 !important; background: none; overflow: visible; }
+body.one .reel:hover { transform: none; }
+body.one .reel-v { position: relative; border: 1px solid var(--line); }
+body.one .reel-v video { opacity: 0.92; }
+body.one .reel:hover .reel-v video { opacity: 1; transform: scale(1.03); }
+body.one .reel-l { left: 0; bottom: 10px; height: 26px; padding: 0 10px; gap: 0; border: 0; background: var(--blue); color: var(--white); font: 600 12px/1 "Roboto Mono", ui-monospace, monospace; letter-spacing: 0.02em; text-transform: uppercase; transition: padding 300ms var(--ease), background-color 250ms; }
+body.one .reel-l b { font-weight: 600; }
+body.one .reel:hover .reel-l { padding: 0 14px; background: oklch(52% 0.3 264); }
+body.one .reel-t { display: none; }
+body.one .reel:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+@media (max-width: 900px) { body.one .reel { left: 12px; bottom: 12px; width: 150px; } body.one .reel-l { height: 22px; font-size: 10px; bottom: 8px; } }
+
+/* ================= v71 loader: the bar is the vEXIT key's own cells, in its own place (footer, right); done, it all fades ================= */
+body.one .gate { transition: opacity 600ms var(--ease); transform: none !important; }
+body.one .gate.out { opacity: 0; transform: none; }
+.gate.out .gate-logo { transform: translate(-50%, -50%) scale(0.96); opacity: 0; }
+body.one .gate .gate-load { position: fixed; left: auto; right: 0; bottom: 0; top: auto; width: 50%; height: 76px; padding: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+body.one .gate .gate-bars { display: grid; gap: 3px; width: 100%; height: 100%; padding: 0; margin: 0; border: 0 !important; background: none; }
+body.one .gate .gate-bars i { transform: none; background: oklch(100% 0 0 / 0.05); transition: background-color 200ms linear; }
+body.one .gate .gate-bars i.on { background: oklch(100% 0 0 / 0.42); }
+body.one .gate .gate-bars i.head { background: oklch(100% 0 0 / 0.8); }
+body.one .is-ready .gate-bars i, body.one .gate.out .gate-bars i { background: oklch(100% 0 0 / 0.42); }
+body.one .gate .gate-load { border: 0; box-shadow: 0 -1px 0 var(--line), -1px 0 0 var(--line); }
+body.one .gate .gate-load { position: absolute; }
+body.one .gate .gate-load { right: auto; bottom: auto; margin: 0; transform: none !important; box-sizing: border-box; }
+/* the tag sits inside the frame, the same 8px from its left and bottom edges, text centred on its cap height */
+body.one .reel-l { left: 9px; bottom: 9px; height: 24px; padding: 1px 9px 0; display: inline-flex; align-items: center; line-height: 1; }
+body.one .reel:hover .reel-l { padding: 1px 12px 0; }
+@media (max-width: 900px) { body.one .reel-l { left: 7px; bottom: 7px; height: 20px; padding: 1px 7px 0; } }
+
+/* ================= v73 Kimm stands in React Bits' Gradient ASCII, the demo's own look, across the whole left half ================= */
+body.one .hc { position: relative; }
+body.one .hc-gascii { position: absolute; z-index: 0; left: 0; top: 0; bottom: 76px; width: 50%; inset: 0 50% 76px 0; pointer-events: none; }
+html.has-gascii .hc-ascii { display: none; }
+body.one .hc-cast { position: relative; z-index: 1; }
+@media (max-width: 900px) { body.one .hc-gascii { inset: 0; } }
+body.one .hc-gascii { inset: 0 auto auto 0; }
+@media (max-width: 900px) { body.one .hc-gascii { inset: 0; } }
+/* the loader bar runs the full width, edge to edge, at the footer's height */
+body.one .gate .gate-load { box-shadow: 0 -1px 0 var(--line); }
+@media (max-width: 900px) { body.one .hc-gascii { width: auto !important; height: auto !important; } }
+
+/* ================= v74 the risk arc reads on the bright field: solid dark cells, the chosen one lifted with a white top edge;
+   every loading bar darker ================= */
+.rk-glass { background: oklch(8% 0.006 264 / 0.35); -webkit-backdrop-filter: blur(14px) saturate(1.1); backdrop-filter: blur(14px) saturate(1.1); }
+.rk-seg .rk-body { fill: oklch(10% 0.006 264 / 0.88); stroke: oklch(100% 0 0 / 0.1); }
+.rk-seg:hover .rk-body { fill: oklch(14% 0.006 264 / 0.92); }
+.rk-seg.on .rk-body { fill: oklch(16% 0.008 264 / 0.95); stroke: oklch(100% 0 0 / 0.35); }
+.rk-edge { stroke: oklch(100% 0 0 / 0.14); }
+.rk-seg.on .rk-edge { stroke: var(--white); stroke-width: 2.5; }
+.rk-ic { fill: oklch(100% 0 0 / 0.5); }
+.rk-seg:hover .rk-ic { fill: oklch(100% 0 0 / 0.8); }
+.rk-seg.on .rk-ic { fill: var(--white); }
+.rk-ticks line { stroke: oklch(100% 0 0 / 0.55); }
+.rk-orb { stroke: oklch(100% 0 0 / 0.25); }
+.rk-val { background: oklch(10% 0.006 264); border-color: oklch(100% 0 0 / 0.35) !important; }
+.rk-val::before { background: oklch(10% 0.006 264); border-color: oklch(100% 0 0 / 0.35); }
+/* loader cells darker */
+body.one .gate .gate-bars i { background: oklch(100% 0 0 / 0.03); }
+body.one .gate .gate-bars i.on, body.one .is-ready .gate-bars i, body.one .gate.out .gate-bars i { background: oklch(100% 0 0 / 0.2); }
+body.one .gate .gate-bars i.head { background: oklch(100% 0 0 / 0.42); }
+
+/* ================= v75 the chat panel has no head row; the risk glyphs solid and bright ================= */
+.rk-ic { fill: oklch(100% 0 0 / 0.72); stroke: none !important; }
+.rk-seg:hover .rk-ic { fill: oklch(100% 0 0 / 0.9); }
+.rk-seg.on .rk-ic { fill: var(--white); }
+body.one .thread { padding-top: 24px; }
+/* the glyph paths were caught by the cell rule (.rk-seg path) and drawn as faint outlines: give them the glyph fill */
+.risk .rk-seg .rk-ic path { fill: inherit !important; stroke: none !important; }
+.dial .dl-seg .dl-ic svg path { fill: inherit !important; stroke: none !important; }
+/* the chosen risk mode in VEX blue: the cell, its edge and the name tag */
+.risk .rk-seg.on .rk-body { fill: var(--blue); stroke: oklch(70% 0.2 264); }
+.risk .rk-seg.on .rk-edge { stroke: oklch(80% 0.12 264); }
+.risk .rk-seg.on .rk-ic { fill: var(--white); }
+.risk .rk-seg.on:hover .rk-body { fill: oklch(52% 0.3 264); }
+.risk .rk-val { background: var(--blue); border-color: var(--blue) !important; }
+.risk .rk-val::before { background: var(--blue); border-color: var(--blue); }
+
+/* ================= v78 the chart: round price ticks, dates, the triangle shaded, EMA, a full crosshair with price and time tags ================= */
+.cx-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 6px; }
+.cx-head b { font: 600 22px/1 var(--font); letter-spacing: -0.01em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.cx-head span { font: 500 12px/1 var(--font); font-variant-numeric: tabular-nums; }
+.cx-head span.up { color: oklch(80% 0.12 150); } .cx-head span.dn { color: oklch(74% 0.15 27); }
+.cx-head em { font: 500 11px/1 var(--font); font-style: normal; letter-spacing: 0.08em; color: var(--muted); }
+.cx-t { text-anchor: middle; font-size: 9.5px; }
+.cx-zone { fill: oklch(100% 0 0 / 0.035); animation: cxfade 700ms 800ms var(--ease) backwards; }
+.cx-sup { stroke: oklch(100% 0 0 / 0.4); stroke-width: 1; stroke-dasharray: 3 3; animation: cxfade 600ms 900ms var(--ease) backwards; }
+.cx-ema { fill: none; stroke: oklch(70% 0.14 264); stroke-width: 1.2; opacity: 0.75; stroke-linejoin: round; animation: cxfade 700ms 700ms var(--ease) backwards; }
+.cx-dot { fill: var(--white); }
+.cx-dot { animation: cxpulse 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes cxpulse { 50% { opacity: 0.35; transform: scale(1.8); } }
+.cx-xh { opacity: 0; transition: opacity 150ms; pointer-events: none; }
+.cx.hov .cx-xh { opacity: 1; }
+.cx-y { stroke-width: 1; stroke-dasharray: 2 3; }
+.cx-tag.hv rect { fill: oklch(22% 0.004 264); stroke: oklch(100% 0 0 / 0.4); }
+.cx-tag.hv text { fill: var(--ink); }
+.cx-tag.tm rect { fill: oklch(22% 0.004 264); stroke: oklch(100% 0 0 / 0.3); }
+.cx-tag.tm text { fill: var(--ink); font-size: 9.5px; }
+.cx.hov .cx-c:not(.on) { opacity: 0.45; }
+.cx.hov .cx-vol:not(.on) { opacity: 0.5; }
+.cx-c, .cx-vol { transition: opacity 150ms; }
+body.one .cx-foot { flex-wrap: wrap; row-gap: 6px; height: auto !important; min-height: 44px; padding-block: 8px !important; }
+@media (prefers-reduced-motion: reduce) { .cx-dot, .cx-zone, .cx-sup, .cx-ema { animation: none; } }
+.cx-ema { stroke: oklch(100% 0 0 / 0.5); stroke-width: 1; opacity: 0.6; }
+/* the tutorial card sits lower: 16px above the footer rule */
+body.one .reel { bottom: calc(16px - var(--vpad, 40px)); }
+@media (max-width: 900px) { body.one .reel { bottom: 12px; } }
+
+/* ================= v80 the chart, modern: a rounded dotted card, standard candles, a smooth green-to-blue EMA over a hatched area,
+   pill chips for prices and dates, value badges on the right ================= */
+body.one .t-chart2 .cx { padding: 0 !important; margin: 0 0 4px; width: 100%; }
+body.one .t-chart2 * { border-radius: revert; }
+.cx2-top { display: flex; justify-content: space-between; align-items: center; padding: 14px 0 8px; }
+body.one .cx2-pill { display: inline-flex; align-items: center; gap: 10px; height: 36px; padding: 0 16px; border: 1px solid oklch(100% 0 0 / 0.14); border-radius: 18px !important; font: 500 13px/1 var(--font); color: var(--ink); }
+.cx2-pill i { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; }
+.cx2-pill i b { width: 2px; background: #34d399; } .cx2-pill i b:nth-child(1) { height: 4px; } .cx2-pill i b:nth-child(2) { height: 7px; } .cx2-pill i b:nth-child(3) { height: 10px; }
+.t-chart2 .cx-head { display: flex; align-items: baseline; gap: 8px; margin: 0; }
+.t-chart2 .cx-head b { font-size: 20px; }
+.cx2-bg { fill: oklch(10% 0.004 264); stroke: oklch(100% 0 0 / 0.1); }
+.cx2-area { animation: cxfade 900ms 400ms var(--ease) backwards; }
+.cx2-lvl { stroke: oklch(100% 0 0 / 0.22); stroke-width: 1; stroke-dasharray: 4 4; }
+.cx2 .cx-c line { stroke-width: 1; }
+.cx2 .cx-c.up line { stroke: #22c58b; } .cx2 .cx-c.up rect { fill: #22c58b; stroke: none; }
+.cx2 .cx-c.dn line { stroke: #f0525f; } .cx2 .cx-c.dn rect { fill: #f0525f; stroke: none; }
+.cx2-line { fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 1400; stroke-dashoffset: 1400; animation: cxdraw 1.6s 300ms cubic-bezier(.4, 0, .2, 1) forwards; }
+@keyframes cxdraw { to { stroke-dashoffset: 0; } }
+.cx2-hl { fill: oklch(100% 0 0 / 0.75); }
+.cx2-end { stroke: oklch(100% 0 0 / 0.25); stroke-width: 1; }
+.cx2-enddot { fill: oklch(12% 0.004 264); stroke: #2f7bff; stroke-width: 2.5; }
+.cx2-chip rect { fill: oklch(19% 0.004 264); }
+.cx2-chip text { fill: var(--ink-2); font: 500 11px/1 var(--font); text-anchor: middle; font-variant-numeric: tabular-nums; }
+.cx2-badge rect { fill: oklch(22% 0.004 264); stroke: oklch(100% 0 0 / 0.14); }
+.cx2-badge .cap { fill: var(--ink-2); font: 500 10px/1 var(--font); }
+.cx2-badge .v { fill: var(--ink); font: 500 14px/1 var(--font); font-variant-numeric: tabular-nums; }
+.cx2-badge .g { fill: #34d399; } .cx2-badge .w { fill: var(--white); }
+.cx2-date rect { fill: oklch(15% 0.004 264); }
+.cx2-date text { fill: var(--ink-2); font: 500 11px/1 var(--font); text-anchor: middle; }
+.cx2-cur { stroke-width: 1; }
+.cx2-curdot { fill: var(--white); stroke: oklch(12% 0.004 264); stroke-width: 2; }
+.cx2-tip rect { fill: oklch(22% 0.004 264); stroke: oklch(100% 0 0 / 0.2); }
+.cx2-tip text { fill: var(--ink); font: 500 11px/1 var(--font); text-anchor: middle; font-variant-numeric: tabular-nums; }
+.cx2.hov .cx-c:not(.on) { opacity: 0.4; }
+body.one .t-chart2 .cx-foot .xc-st { margin-left: auto; color: var(--muted); background: none !important; padding: 0 !important; }
+@media (prefers-reduced-motion: reduce) { .cx2-line { animation: none; stroke-dashoffset: 0; } }
+
+/* ================= v81 the chart in the house: square cells, one 1px rule at 7% (24% on what is current), 4px rhythm, labels in capitals ================= */
+.cx2 rect { rx: 0; ry: 0; }
+.cx2-bg { fill: oklch(8.5% 0.004 264); stroke: var(--line); }
+body.one .t-chart2 .cx { margin: 0; }
+.cx2-top { padding: 16px 0 8px; }
+body.one .cx2-pill { height: 32px; padding: 0 12px; gap: 8px; border: 1px solid var(--line) !important; border-radius: 0 !important; background: oklch(100% 0 0 / 0.03); font: 500 12px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; }
+.t-chart2 .cx-head b { font-size: 20px; font-weight: 600; }
+.t-chart2 .cx-read { padding: 0 0 12px; }
+.cx2-chip rect { fill: oklch(8.5% 0.004 264); stroke: var(--line); }
+.cx2-chip text { fill: var(--muted); font-size: 10.5px; letter-spacing: 0.04em; }
+.cx2-badge rect { fill: oklch(10% 0.004 264); stroke: var(--line-hi); }
+.cx2-badge .cap { fill: var(--muted); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.cx2-badge .v { font-size: 13px; font-weight: 600; }
+.cx2-date rect { fill: none; stroke: var(--line); }
+.cx2-date text { fill: var(--muted); font-size: 10.5px; letter-spacing: 0.04em; }
+.cx2-tip rect { fill: oklch(14% 0.004 264); stroke: var(--line-hi); }
+.cx2-tip text { font-size: 10.5px; letter-spacing: 0.04em; }
+.cx2-enddot { stroke-width: 2; }
+body.one .t-chart2 .cx-foot { border-top: 1px solid var(--line) !important; margin-top: 8px !important; }
+body.one .gate .gate-bars i { transition: none; }
+.gl-fill { transition: none; }
+
+/* ================= v82 chart: a price gutter instead of chips on the candles, gridlines, volume at the floor, date ticks,
+   the last close joined to its badge ================= */
+.cx2-grid { stroke: oklch(100% 0 0 / 0.06); stroke-width: 1; stroke-dasharray: 2 4; }
+.cx2-gut { stroke: var(--line); }
+.cx2-ax { fill: var(--muted); font: 500 10.5px/1 var(--font); text-anchor: end; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.cx2-vol { opacity: 0.22; } .cx2-vol.up { fill: #22c58b; } .cx2-vol.dn { fill: #f0525f; }
+.cx2-now { stroke: #34d399; stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.7; }
+.cx2-date line { stroke: var(--line-hi); stroke-width: 1; }
+.cx2-date rect { display: none; }
+.cx2-badge .b { fill: #2f7bff; }
+.cx2-badge.sm rect { stroke: var(--line); }
+
+/* ================= v82 chart: a price gutter instead of chips on the candles, gridlines, volume at the floor, date ticks,
+   the last close joined to its badge ================= */
+.cx2-grid { stroke: oklch(100% 0 0 / 0.06); stroke-width: 1; stroke-dasharray: 2 4; }
+.cx2-gut { stroke: var(--line); }
+.cx2-ax { fill: var(--muted); font: 500 10.5px/1 var(--font); text-anchor: end; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.cx2-vol { opacity: 0.22; } .cx2-vol.up { fill: #22c58b; } .cx2-vol.dn { fill: #f0525f; }
+.cx2-now { stroke: #34d399; stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.7; }
+.cx2-date line { stroke: var(--line-hi); stroke-width: 1; }
+.cx2-badge .b { fill: #2f7bff; }
+.cx2-badge.sm rect { stroke: var(--line); }
+
+/* ================= v83 chart: every line the same hairline (1px on screen, whatever the scale), solid badges, a measured foot ================= */
+.cx2 line, .cx2 rect, .cx2 path, .cx2 circle, .cx2 polyline { vector-effect: non-scaling-stroke; }
+.cx2-bg, .cx2-gut { stroke: var(--line); stroke-width: 1; }
+.cx2-badge rect, .cx2-badge.sm rect { fill: oklch(17% 0.004 264); stroke: none; }
+.cx2-tip rect { stroke: none; fill: oklch(20% 0.004 264); }
+.cx2-date line { stroke: var(--line); }
+.cx2-end { stroke: var(--line); }
+.cx2-line { stroke-width: 2; }
+body.one .t-chart2 { padding: 0 16px !important; }
+.t-chart2 .cx2-top { padding: 16px 0 12px; }
+body.one .t-chart2 .cx { margin: 0 0 12px; }
+body.one .t-chart2 .cx-foot { margin: 0 -16px !important; padding: 12px 16px !important; min-height: 0; height: auto !important; gap: 24px; row-gap: 8px; border-top: 1px solid var(--line) !important; line-height: 1; }
