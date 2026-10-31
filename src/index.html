@@ -19,12 +19,6 @@
   <button class="nav-burger" type="button" id="menuBtn" aria-expanded="false" aria-controls="mnav" aria-label="Menu"><span class="nb-ic" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
   <nav class="nav-cells" aria-label="Site">
     <span class="nav-links">
-    <a href="https://projectvex.ai/desktop"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="11" rx="1.5"/><path d="M9 19.5h6M12 15.5v4"/><path class="hi" pathLength="1" d="M6.5 12.5l3-3 2.5 2 4.5-4.5"/></svg><span>Desktop</span></a>
-    <a href="https://projectvex.ai/cloud"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path class="s1" d="M12 3.5l8 4-8 4-8-4z"/><path class="s2" d="M4 11.5l8 4 8-4"/><path class="s3" d="M4 15.5l8 4 8-4"/><path class="hi" pathLength="1" d="M12 3.5l8 4"/></svg><span>Cloud</span></a>
-    <a href="https://projectvex.ai/token"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><g class="coin"><ellipse cx="12" cy="12" rx="8" ry="8"/><ellipse cx="12" cy="12" rx="5" ry="5" class="hi" pathLength="1"/></g></svg><span>Token</span></a>
-    <a href="https://projectvex.ai/whitepaper"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4"/><path class="hi" pathLength="1" d="M9 12h6M9 15h6M9 18h4"/></svg><span>Whitepaper</span></a>
-    <a href="https://projectvex.ai/news"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><path class="ln" d="M7 9.5h6M7 12.5h10M7 15.5h8"/><circle class="hi dot" cx="17" cy="9.5" r="1.3"/></svg><span>News</span></a>
-    <a href="https://projectvex.ai/docs/inference"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5zM12 6.5v13"/><path class="hi pg" pathLength="1" d="M12 6.5c1.5-1.2 4-1.6 6-1.3v12.6c-2-.3-4.5.1-6 1.3"/></svg><span>Docs</span></a>
     </span>
   </nav>
   <div class="nav-btns">
@@ -38,14 +32,6 @@
       <div class="mega-col">
         <a class="mega-act" href="https://projectvex.ai/download/auto"><span>Download</span></a>
         <a class="mega-act" href="https://t.me/ProjectVexai"><span>Whitelist</span></a>
-        <a href="https://projectvex.ai/desktop"><span>Desktop</span></a>
-        <a href="https://projectvex.ai/cloud"><span>Cloud</span></a>
-        <a href="https://projectvex.ai/token"><span>Token</span></a>
-      </div>
-      <div class="mega-col">
-        <a href="https://projectvex.ai/whitepaper"><span>Whitepaper</span></a>
-        <a href="https://projectvex.ai/docs/inference"><span>Docs</span></a>
-        <a href="https://projectvex.ai/news"><span>News</span></a>
       </div>
       <div class="mega-col">
         <a href="https://robinhoodchain.blockscout.com/token/0x8Ff92566f2e81BDd68EDfAa8cde73942A723796b"><span>$VEX contract</span></a>
@@ -88,7 +74,7 @@
     </div>
     <div class="hc-copy">
       <ol class="thread" id="thread" aria-live="polite" aria-label="Vex, simulated"></ol>
-      <form class="ask" onsubmit="return false"><label class="visually-hidden" for="vxAsk">Message Vex</label><div class="ask-f"><input class="ask-in" id="vxAsk" type="text" autocomplete="off" spellcheck="false" enterkeyhint="send" placeholder="Swap 200 USDC to ETH, max 1% slippage."><button class="ask-go tb tb--blue" id="vxSend" type="button"><svg class="dm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="5" r="1.6" style="--d:0ms"/><circle cx="12" cy="5" r="1.6" style="--d:70ms"/><circle cx="19" cy="5" r="2.6" style="--d:140ms"/><circle cx="5" cy="12" r="2.6" style="--d:70ms"/><circle cx="12" cy="12" r="2.6" style="--d:140ms"/><circle cx="19" cy="12" r="1.6" style="--d:210ms"/><circle cx="5" cy="19" r="1.6" style="--d:140ms"/><circle cx="12" cy="19" r="2.6" style="--d:210ms"/><circle cx="19" cy="19" r="1.6" style="--d:280ms"/></svg><span>Send</span></button></div></form>
+      <form class="ask" onsubmit="return false"><label class="visually-hidden" for="vxAsk">Message Vex</label><div class="ask-f"><button class="ask-new" id="vxNew" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.5L4 22v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 6.5v3H8v2h3v3h2v-3h3v-2h-3v-3z"/></svg><span>New chat</span></button><input class="ask-in" id="vxAsk" type="text" autocomplete="off" spellcheck="false" enterkeyhint="send" placeholder="Swap 200 USDC to ETH, max 1% slippage."><button class="ask-go tb tb--blue" id="vxSend" type="button"><svg class="dm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="5" r="1.6" style="--d:0ms"/><circle cx="12" cy="5" r="1.6" style="--d:70ms"/><circle cx="19" cy="5" r="2.6" style="--d:140ms"/><circle cx="5" cy="12" r="2.6" style="--d:70ms"/><circle cx="12" cy="12" r="2.6" style="--d:140ms"/><circle cx="19" cy="12" r="1.6" style="--d:210ms"/><circle cx="5" cy="19" r="1.6" style="--d:140ms"/><circle cx="12" cy="19" r="2.6" style="--d:210ms"/><circle cx="19" cy="19" r="1.6" style="--d:280ms"/></svg><span>Send</span></button></div></form>
     </div>
   </div>
   <!-- the frame's footer, on the same two columns as the header: chains under Vex; your key under the talk, where the menu begins -->

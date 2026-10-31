@@ -18,6 +18,8 @@
   /* three layouts: desktop (wide), side (phone or small tablet held sideways: Kimm left, talk right), stack (portrait: Kimm above the talk) */
   const side = matchMedia('(max-width: 900px) and (orientation: landscape)');
   const mode = () => !small.matches ? 'wide' : side.matches ? 'side' : 'stack';
+  /* her measures in model units: top of the hair, the centre of her face, her widest pose, and the arc's own height in px at scale 1 */
+  const KM = { head: 315, face: 2250, wide: 3300, arc: 194, foot: 8921 };
   const TOP = () => { const H = Math.max(1, host.clientHeight), m = mode(); return m === 'stack' ? Math.max(0.08, 66 / H) : m === 'side' ? Math.max(0.1, 64 / H) : Math.max(0.2, 172 / H); };
 
   /* what each moment looks like: hand toggles, marks, face */
@@ -122,15 +124,34 @@
     const fit = () => {
       const W = Math.max(1, host.clientWidth), H = Math.max(1, host.clientHeight), mw = im.width, mh = im.height;
       if (app.renderer.width !== Math.round(W * dpr) || app.renderer.height !== Math.round(H * dpr)) app.renderer.resize(W, H);
-      /* desktop: head to waist. Portrait phone: head and shoulders above the talk. Sideways: a little more of her */
-      const m = mode(), crop = +(host.dataset.crop || (m === 'stack' ? 0.78 : m === 'side' ? 0.5 : 0.6));
-      /* height sets her size, but never wider than her column: a narrow window shrinks her instead of cutting her arms */
-      const s = Math.min(H / (mh * crop), W / (mw * (m === 'wide' ? 0.62 : m === 'side' ? 0.46 : 0.7))); model.scale.set(s);
-      model.x = (W - mw * s) / 2 + W * +(host.dataset.shift || 0); model.y = H * TOP() + (RM ? 0 : jy);
-      fit.s = s; fit.mw = mw; fit.mh = mh;
+      const m = mode(), rk = document.querySelector('.risk');
+      if (m === 'wide' && !host.dataset.crop) {
+        /* desktop: framed like a portrait. Her face sits on the centre line of her column, the risk arc right over her head,
+           and the bigger the screen, the closer the shot: head to hips on a laptop, head to waist on a large display */
+        const hr = host.getBoundingClientRect(), cast = host.closest('.hc-cast'), cr = cast.getBoundingClientRect();
+        const rail = document.querySelector('.rail'), cp = document.querySelector('.hc-copy'), st = document.querySelector('.hc-strip');
+        const colL = rail && rail.offsetWidth ? rail.getBoundingClientRect().right : cast.closest('.hc').getBoundingClientRect().left;
+        const colR = cp ? cp.getBoundingClientRect().left : cr.right, floor = st ? st.getBoundingClientRect().top : hr.bottom;
+        const navB = cast.closest('.hc').getBoundingClientRect().top, colH = floor - navB, cx = (colL + colR) / 2;
+        const t = clamp((colH - 620) / 640, 0, 1), span = 4300 - 1300 * t;
+        const arcTop = cr.top + 12;
+        let s = 0.14, k = 0.8;
+        for (let i = 0; i < 3; i++) { k = clamp(s * 5.6, 0.55, 1.15); const hd = arcTop + KM.arc * k + 6; s = Math.min((floor - hd) / span, (colR - colL) * 0.92 / KM.wide); }
+        const head = arcTop + KM.arc * k + 6;
+        model.scale.set(s); model.x = cx - hr.left - KM.face * s; fit.y0 = head - hr.top - KM.head * s;
+        if (rk) { rk.dataset.k = '1'; rk.style.setProperty('--rk-s', k.toFixed(3)); rk.style.left = (cx - cr.left) + 'px'; rk.style.top = '12px'; }
+      } else {
+        if (rk && rk.dataset.k) { delete rk.dataset.k; rk.style.removeProperty('--rk-s'); rk.style.top = ''; if (window.vexRiskPlace) window.vexRiskPlace(); }
+        /* portrait phone: head and shoulders above the talk. Sideways: a little more of her */
+        const crop = +(host.dataset.crop || (m === 'stack' ? 0.78 : m === 'side' ? 0.5 : 0.6));
+        const s = Math.min(H / (mh * crop), W / (mw * (m === 'wide' ? 0.62 : m === 'side' ? 0.46 : 0.7))); model.scale.set(s);
+        model.x = (W - mw * s) / 2 + W * +(host.dataset.shift || 0); fit.y0 = H * TOP();
+      }
+      model.y = fit.y0 + (RM ? 0 : jy);
+      fit.s = model.scale.x; fit.mw = mw; fit.mh = mh;
       app.render();
     };
-    fit(); new ResizeObserver(fit).observe(host); host._fit = fit;
+    fit(); new ResizeObserver(fit).observe(host); host._fit = fit; host._app = app; host._model = model;
     /* every frame: ease each driven parameter toward its target, after the motions and physics inputs */
     const put = (id, v) => { const i = ids[id]; if (i !== undefined) core.setParameterValueByIndex(i, v); };
     im.on('beforeModelUpdate', () => {
@@ -200,7 +221,7 @@
       if (shut > 0.01) for (const e of ['ParamEyeLOpen', 'ParamEyeROpen']) { const i = ids[e]; if (i !== undefined) core.setParameterValueByIndex(i, core.getParameterValueByIndex(i) * (1 - shut)); }
       if (hop > 0) { hv -= 150 * hop; hop = 0; }
       { const w = 13, z = 0.45, a = -2 * z * w * hv - w * w * jy; hv += a * dt; jy += hv * dt; }
-      model.y = host.clientHeight * TOP() + (RM ? 0 : jy);
+      model.y = (fit.y0 === undefined ? host.clientHeight * TOP() : fit.y0) + (RM ? 0 : jy);
     });
     try { model.motion('Idle', 0, 1); } catch (e) {}
     setMood('rest'); ready = true;

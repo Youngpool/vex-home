@@ -27,7 +27,7 @@ vo = {p.stem: 'data:audio/mpeg;base64,' + base64.b64encode(p.read_bytes()).decod
 av = 'data:image/webp;base64,' + base64.b64encode((SRC / 'user-avatar.webp').read_bytes()).decode()
 t = t.replace('{{VOICE}}', '<script>window.VEX_VOICE=' + json.dumps(vo) + ';window.VEX_USER_AVATAR="' + av + '"</script>')
 
-t = t.replace('{{SCRIPT}}', ''.join('<script>\n' + read(SRC / f) + '</script>\n' for f in ('v7.js', 'dial.js', 'cursor.js', 'reel.js', 'gradient-ascii.js', 'kimm.js')))
+t = t.replace('{{SCRIPT}}', ''.join('<script>\n' + read(SRC / f) + '</script>\n' for f in ('v7.js', 'rail.js', 'dial.js', 'cursor.js', 'reel.js', 'gradient-ascii.js', 'kimm.js')))
 
 fonts = [('Be Vietnam Pro', f'be-vietnam-pro-latin-{w}-normal.woff2', w) for w in (300, 400, 600)] + [('Roboto Mono', 'roboto-mono-latin-400-normal.woff2', 400)]
 t = t.replace('/*FONTS*/', ''.join(

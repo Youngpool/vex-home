@@ -844,7 +844,7 @@ if (hero && gl2) {
   /* exactly the left half: from the page edge to the chat panel's edge, header to footer rule */
   const fit = () => { const cp = document.querySelector('.hc-copy'), st = document.querySelector('.hc-strip'), h = hero.getBoundingClientRect();
     if (innerWidth <= 900 || !cp) { box.style.width = ''; box.style.height = ''; return; }
-    box.style.width = (cp.getBoundingClientRect().left - h.left) + 'px'; box.style.height = ((st ? st.getBoundingClientRect().top : h.bottom) - h.top) + 'px'; };
+    box.style.width = (cp.getBoundingClientRect().left - box.getBoundingClientRect().left) + 'px'; box.style.height = ((st ? st.getBoundingClientRect().top : h.bottom) - h.top) + 'px'; };
   fit(); addEventListener('resize', fit); if (document.fonts) document.fonts.ready.then(fit); setTimeout(fit, 1500);
   document.documentElement.classList.add('has-gascii');
   window.vexBg = GradientASCII(box, { characters: ' VEX', cellSize: 20, density: 0.5, glyphOpacity: 0.6, gradientOpacity: 0.8, dpr: Math.min(2, devicePixelRatio || 1), fontFamily: '"Roboto Mono", ui-monospace, monospace' });

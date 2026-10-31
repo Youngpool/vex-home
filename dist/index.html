@@ -2337,6 +2337,112 @@ html.rs *, html.rs *::before, html.rs *::after { transition: none !important; }
 html.swap .hc-kimm canvas, html.swap .thread, html.swap .risk, html.swap .hc-gascii { animation: hc-swap 480ms var(--ease) both; }
 @media (prefers-reduced-motion: reduce) { html.swap .hc-kimm canvas, html.swap .thread, html.swap .risk, html.swap .hc-gascii { animation: none; } }
 
+/* ================= v88 desktop: a history rail on the far left, under the grid key, and the two columns run edge to edge
+   (no centred container), so the claim, the reel and Kimm all hang off the same left line ================= */
+.rail { display: none; }
+@media (min-width: 901px) {
+  body.one { --rail: var(--nav); --padx: clamp(20px, 2.2vw, 40px); }
+  body.one .hc { padding-left: var(--rail); }
+  body.one .hc-gascii { left: var(--rail) !important; }
+  .rail { display: block; position: absolute; z-index: 8; left: 0; top: 0; bottom: 0; width: var(--rail); }
+  .rl-col { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; background: oklch(6% 0.006 264); border-right: 1px solid var(--line); }
+  .rl-cell { position: relative; display: grid; place-items: center; flex: none; width: 100%; height: var(--rail); padding: 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0 !important; background: none; color: var(--ink-2); cursor: pointer; transition: background-color 200ms, color 200ms; }
+  .rl-cell:hover { background: oklch(100% 0 0 / 0.05); color: var(--ink); }
+  .rl-ic { width: 22px; height: 22px; fill: currentColor; flex: none; }
+  .rl-tog .rl-ic { transition: transform 420ms var(--ease); }
+  .rail.open .rl-tog { color: var(--ink); background: oklch(100% 0 0 / 0.05); }
+  .rail.open .rl-tog .rl-ic { transform: scaleX(-1); }
+  .rl-recent { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .rl-recent .rl-cell { height: 60px; color: var(--muted); }
+  .rl-recent .rl-cell:hover { color: var(--ink); }
+  .rl-item[data-r="Blocked"] .rl-ic { fill: oklch(66% 0.17 27); }
+  .rl-item.live { color: var(--ink) !important; box-shadow: inset 0 0 0 1px oklch(100% 0 0 / 0.24); }
+  .rl-item.live .rl-ic { animation: rl-live 1.4s var(--ease) infinite; }
+  @keyframes rl-live { 50% { opacity: 0.45; } }
+  .rl-me { margin-top: auto; height: 76px; border-bottom: 0; border-top: 1px solid var(--line); cursor: default; }
+  .rl-me:hover { background: none; }
+  .rl-me img { width: 30px; height: 30px; border-radius: 50% !important; object-fit: cover; }
+  /* a pointed label beside each cell, like the risk arc's */
+  .rl-col .rl-cell[data-tip]::after { content: attr(data-tip); position: absolute; z-index: 5; left: calc(100% + 10px); top: 50%; max-width: 300px; padding: 8px 10px; overflow: hidden; background: oklch(20% 0.004 264); color: var(--ink); font: 500 12px/1 var(--font); white-space: nowrap; text-overflow: ellipsis; pointer-events: none; opacity: 0; transform: translate(-4px, -50%); transition: opacity 160ms, transform 220ms var(--ease); }
+  .rl-col .rl-cell[data-tip]::before { content: ""; position: absolute; z-index: 5; left: calc(100% + 4px); top: 50%; border: 6px solid transparent; border-right-color: oklch(20% 0.004 264); border-left: 0; pointer-events: none; opacity: 0; transform: translate(-4px, -50%); transition: opacity 160ms, transform 220ms var(--ease); }
+  .rl-col .rl-cell[data-tip]:hover::after, .rl-col .rl-cell[data-tip]:hover::before, .rl-col .rl-cell[data-tip]:focus-visible::after, .rl-col .rl-cell[data-tip]:focus-visible::before { opacity: 1; transform: translate(0, -50%); }
+  .rail.open .rl-col .rl-cell[data-tip]::after, .rail.open .rl-col .rl-cell[data-tip]::before { display: none; }
+  /* the panel slides out from behind the column and lies over Kimm's side; nothing else moves */
+  .rl-panel { position: absolute; z-index: 1; left: 100%; top: 0; bottom: 0; width: 320px; display: flex; flex-direction: column; background: oklch(8% 0.006 264); border-right: 1px solid var(--line); box-shadow: 24px 0 48px -24px oklch(0% 0 0 / 0.7);
+    transform: translateX(-100%); opacity: 0; visibility: hidden; transition: transform 460ms var(--ease), opacity 260ms, visibility 0s 460ms; }
+  .rail.open .rl-panel { transform: none; opacity: 1; visibility: visible; transition: transform 460ms var(--ease), opacity 200ms, visibility 0s; }
+  .rl-head { display: flex; align-items: center; justify-content: space-between; flex: none; height: var(--rail); padding: 0 20px; border-bottom: 1px solid var(--line); }
+  .rl-h { font: 600 12px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
+  .rl-n { font: 400 12px/1 "Roboto Mono", ui-monospace, monospace; color: var(--muted); }
+  .rl-list { flex: 1; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: oklch(100% 0 0 / 0.12) transparent; }
+  .rl-g { padding: 20px 20px 8px; font: 500 11px/1 var(--font); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .rl-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 14px; row-gap: 6px; align-items: center; width: 100%; padding: 14px 20px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0 !important; background: none; color: var(--muted); text-align: left; cursor: pointer; transition: background-color 200ms, color 200ms; }
+  .rl-row:hover { background: oklch(100% 0 0 / 0.04); color: var(--ink); }
+  .rl-row .rl-ic { grid-row: 1 / span 2; }
+  .rl-q { grid-column: 2; min-width: 0; overflow: hidden; color: var(--ink); font: 400 14px/1.3 var(--font); white-space: nowrap; text-overflow: ellipsis; }
+  .rl-r { grid-column: 3; grid-row: 1; font: 500 11px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .rl-row[data-r="Signed"] .rl-r { color: oklch(76% 0.15 152); }
+  .rl-row[data-r="Blocked"] .rl-r { color: oklch(72% 0.17 27); }
+  .rl-row.live .rl-r { color: var(--ink); }
+  .rl-t { grid-column: 2; grid-row: 2; font: 400 12px/1 "Roboto Mono", ui-monospace, monospace; color: var(--muted); }
+  .rl-new2 { flex: none; grid-template-rows: auto; height: 60px; color: var(--ink-2); }
+  .rl-new2 .rl-ic { grid-row: 1; }
+  .rl-empty { margin: 0; padding: 20px; color: var(--muted); font-size: 14px; }
+  .rl-cell:focus-visible, .rl-row:focus-visible { outline: 1px solid oklch(100% 0 0 / 0.6); outline-offset: -1px; }
+  .nope { animation: rl-nope 360ms var(--ease); }
+  @keyframes rl-nope { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+}
+@media (prefers-reduced-motion: reduce) { .rl-panel, .rl-tog .rl-ic, .rl-cell::after, .rl-cell::before { transition: none !important; } .rl-item.live .rl-ic, .nope { animation: none; } }
+@media (min-width: 901px) {
+  body.one .thread > li, body.one .ask, body.one .hc-foot-l { zoom: var(--z, 1); }
+  body.one .reel { width: calc(260px * var(--z, 1)) !important; }
+}
+@media (min-width: 901px) and (max-height: 700px) { body.one .reel { width: 190px !important; } }
+/* v89 rail: the selected cell has no border, only a dark grey wash that fades out to the right */
+@media (min-width: 901px) {
+  .rl-item.live, .rail.open .rl-tog { box-shadow: none !important; background: linear-gradient(90deg, oklch(22% 0.004 264) 0%, oklch(22% 0.004 264 / 0) 100%) !important; }
+}
+/* v90 rail, calmer: open, the column keeps only the toggle and you (the panel already lists everything); one line per order, no group labels */
+@media (min-width: 901px) {
+  .rail.open .rl-new, .rail.open .rl-recent { visibility: hidden; }
+  .rl-g { display: none; }
+  .rl-row { grid-template-rows: auto; padding: 0 20px; height: 60px; }
+  .rl-row .rl-ic { grid-row: 1; }
+  .rl-t { display: none; }
+  .rl-row .rl-ic { width: 20px; height: 20px; }
+  .rl-row:not(.live):not(:hover) .rl-ic { fill: var(--muted); }
+  .rl-row[data-r="Blocked"] .rl-ic { fill: oklch(66% 0.17 27) !important; }
+}
+/* v91 rail: the collapsed column holds only the toggle, New chat and you; the orders live in the panel */
+.rl-recent { display: none !important; }
+/* v92: New chat in the composer, the mirror of Send (dark, not blue); the rail's toggle sits right above your avatar */
+.ask-new { position: relative; flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 14px; height: 100%; padding: 0 30px; border: 0; border-right: 1px solid var(--line); border-radius: 0 !important; background: oklch(11% 0.006 264); color: var(--ink-2); font: 500 13px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: color 200ms, background-color 200ms; }
+.ask-new svg { width: 20px; height: 20px; fill: currentColor; flex: none; }
+.ask-new:hover { color: var(--ink); background: linear-gradient(90deg, oklch(22% 0.004 264), oklch(22% 0.004 264 / 0)); }
+.ask-new:focus-visible { outline: 1px solid oklch(100% 0 0 / 0.6); outline-offset: -1px; }
+.ask-new.nope { animation: rl-nope 360ms var(--ease); }
+@media (max-width: 900px) { .ask-new { padding: 0 16px; } .ask-new span { display: none; } }
+@media (min-width: 901px) { .rl-recent { display: block !important; flex: 1; visibility: hidden; } .rl-tog { border-top: 1px solid var(--line) !important; } }
+@keyframes rl-nope { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+/* v93 the history push: one long, soft ease. The panel slides out (transform only), Kimm's side drifts right and dims under a scrim, the rows follow in a short cascade */
+@media (min-width: 901px) {
+  :root { --push: cubic-bezier(0.22, 1, 0.36, 1); }
+  .rl-panel { opacity: 1 !important; transform: translate3d(-100%, 0, 0); transition: transform 720ms var(--push), visibility 0s 720ms !important; will-change: transform; }
+  .rail.open .rl-panel { transform: translate3d(0, 0, 0); transition: transform 720ms var(--push), visibility 0s !important; }
+  .rl-scrim { position: absolute; z-index: 0; left: 100%; top: 0; bottom: 0; width: var(--col, 50vw); background: oklch(3% 0.004 264 / 0.5); opacity: 0; pointer-events: none; transition: opacity 600ms var(--push); }
+  .rail.open .rl-scrim { opacity: 1; }
+  body.one .hc-cast, body.one .hc-gascii, body.one .hc-foot-l { transition: transform 720ms var(--push); }
+  html.rl-open body.one .hc-cast, html.rl-open body.one .hc-gascii, html.rl-open body.one .hc-foot-l { transform: translate3d(64px, 0, 0); }
+  .rl-panel .rl-row, .rl-head { opacity: 0; transform: translate3d(-16px, 0, 0); transition: opacity 260ms ease, transform 520ms var(--push); }
+  .rail.open .rl-panel .rl-row, .rail.open .rl-head { opacity: 1; transform: none; transition: opacity 420ms ease calc(120ms + var(--n, 0) * 45ms), transform 620ms var(--push) calc(120ms + var(--n, 0) * 45ms); }
+  .rail.open .rl-tog .rl-ic { transform: rotate(-30deg); }
+  .rl-tog .rl-ic { transition: transform 720ms var(--push); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rl-panel, .rl-scrim, .rl-panel .rl-row, .rl-head, body.one .hc-cast, body.one .hc-gascii, body.one .hc-foot-l { transition: none !important; }
+  html.rl-open body.one .hc-cast, html.rl-open body.one .hc-gascii, html.rl-open body.one .hc-foot-l { transform: none; }
+}
+
 </style>
 </head>
 <body class="one">
@@ -2349,12 +2455,6 @@ html.swap .hc-kimm canvas, html.swap .thread, html.swap .risk, html.swap .hc-gas
   <button class="nav-burger" type="button" id="menuBtn" aria-expanded="false" aria-controls="mnav" aria-label="Menu"><span class="nb-ic" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
   <nav class="nav-cells" aria-label="Site">
     <span class="nav-links">
-    <a href="https://projectvex.ai/desktop"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="11" rx="1.5"/><path d="M9 19.5h6M12 15.5v4"/><path class="hi" pathLength="1" d="M6.5 12.5l3-3 2.5 2 4.5-4.5"/></svg><span>Desktop</span></a>
-    <a href="https://projectvex.ai/cloud"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path class="s1" d="M12 3.5l8 4-8 4-8-4z"/><path class="s2" d="M4 11.5l8 4 8-4"/><path class="s3" d="M4 15.5l8 4 8-4"/><path class="hi" pathLength="1" d="M12 3.5l8 4"/></svg><span>Cloud</span></a>
-    <a href="https://projectvex.ai/token"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><g class="coin"><ellipse cx="12" cy="12" rx="8" ry="8"/><ellipse cx="12" cy="12" rx="5" ry="5" class="hi" pathLength="1"/></g></svg><span>Token</span></a>
-    <a href="https://projectvex.ai/whitepaper"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4"/><path class="hi" pathLength="1" d="M9 12h6M9 15h6M9 18h4"/></svg><span>Whitepaper</span></a>
-    <a href="https://projectvex.ai/news"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><path class="ln" d="M7 9.5h6M7 12.5h10M7 15.5h8"/><circle class="hi dot" cx="17" cy="9.5" r="1.3"/></svg><span>News</span></a>
-    <a href="https://projectvex.ai/docs/inference"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5zM12 6.5v13"/><path class="hi pg" pathLength="1" d="M12 6.5c1.5-1.2 4-1.6 6-1.3v12.6c-2-.3-4.5.1-6 1.3"/></svg><span>Docs</span></a>
     </span>
   </nav>
   <div class="nav-btns">
@@ -2368,14 +2468,6 @@ html.swap .hc-kimm canvas, html.swap .thread, html.swap .risk, html.swap .hc-gas
       <div class="mega-col">
         <a class="mega-act" href="https://projectvex.ai/download/auto"><span>Download</span></a>
         <a class="mega-act" href="https://t.me/ProjectVexai"><span>Whitelist</span></a>
-        <a href="https://projectvex.ai/desktop"><span>Desktop</span></a>
-        <a href="https://projectvex.ai/cloud"><span>Cloud</span></a>
-        <a href="https://projectvex.ai/token"><span>Token</span></a>
-      </div>
-      <div class="mega-col">
-        <a href="https://projectvex.ai/whitepaper"><span>Whitepaper</span></a>
-        <a href="https://projectvex.ai/docs/inference"><span>Docs</span></a>
-        <a href="https://projectvex.ai/news"><span>News</span></a>
       </div>
       <div class="mega-col">
         <a href="https://robinhoodchain.blockscout.com/token/0x8Ff92566f2e81BDd68EDfAa8cde73942A723796b"><span>$VEX contract</span></a>
@@ -2418,7 +2510,7 @@ html.swap .hc-kimm canvas, html.swap .thread, html.swap .risk, html.swap .hc-gas
     </div>
     <div class="hc-copy">
       <ol class="thread" id="thread" aria-live="polite" aria-label="Vex, simulated"></ol>
-      <form class="ask" onsubmit="return false"><label class="visually-hidden" for="vxAsk">Message Vex</label><div class="ask-f"><input class="ask-in" id="vxAsk" type="text" autocomplete="off" spellcheck="false" enterkeyhint="send" placeholder="Swap 200 USDC to ETH, max 1% slippage."><button class="ask-go tb tb--blue" id="vxSend" type="button"><svg class="dm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="5" r="1.6" style="--d:0ms"/><circle cx="12" cy="5" r="1.6" style="--d:70ms"/><circle cx="19" cy="5" r="2.6" style="--d:140ms"/><circle cx="5" cy="12" r="2.6" style="--d:70ms"/><circle cx="12" cy="12" r="2.6" style="--d:140ms"/><circle cx="19" cy="12" r="1.6" style="--d:210ms"/><circle cx="5" cy="19" r="1.6" style="--d:140ms"/><circle cx="12" cy="19" r="2.6" style="--d:210ms"/><circle cx="19" cy="19" r="1.6" style="--d:280ms"/></svg><span>Send</span></button></div></form>
+      <form class="ask" onsubmit="return false"><label class="visually-hidden" for="vxAsk">Message Vex</label><div class="ask-f"><button class="ask-new" id="vxNew" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.5L4 22v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 6.5v3H8v2h3v3h2v-3h3v-2h-3v-3z"/></svg><span>New chat</span></button><input class="ask-in" id="vxAsk" type="text" autocomplete="off" spellcheck="false" enterkeyhint="send" placeholder="Swap 200 USDC to ETH, max 1% slippage."><button class="ask-go tb tb--blue" id="vxSend" type="button"><svg class="dm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="5" r="1.6" style="--d:0ms"/><circle cx="12" cy="5" r="1.6" style="--d:70ms"/><circle cx="19" cy="5" r="2.6" style="--d:140ms"/><circle cx="5" cy="12" r="2.6" style="--d:70ms"/><circle cx="12" cy="12" r="2.6" style="--d:140ms"/><circle cx="19" cy="12" r="1.6" style="--d:210ms"/><circle cx="5" cy="19" r="1.6" style="--d:140ms"/><circle cx="12" cy="19" r="2.6" style="--d:210ms"/><circle cx="19" cy="19" r="1.6" style="--d:280ms"/></svg><span>Send</span></button></div></form>
     </div>
   </div>
   <!-- the frame's footer, on the same two columns as the header: chains under Vex; your key under the talk, where the menu begins -->
@@ -3910,6 +4002,9 @@ hairline({
      and when the layout itself changes (desktop, sideways, portrait) the hero fades through the swap instead of jumping */
   {
     const H = document.documentElement; let rt = 0;
+    /* big screens: the talk and the composer grow with the window, so text never shrinks to a corner on a large display */
+    const zoom = () => H.style.setProperty('--z', Math.max(1, Math.min(1.5, innerWidth / 1760)).toFixed(3));
+    zoom(); addEventListener('resize', zoom, { passive: true });
     addEventListener('resize', () => { H.classList.add('rs'); clearTimeout(rt); rt = setTimeout(() => H.classList.remove('rs'), 220); }, { passive: true });
     const swap = () => { if (RM) return; H.classList.remove('swap'); void H.offsetWidth; H.classList.add('swap'); setTimeout(() => H.classList.remove('swap'), 520); };
     for (const q of ['(max-width: 900px)', '(max-width: 900px) and (orientation: landscape)', '(min-width: 601px)']) matchMedia(q).addEventListener('change', swap);
@@ -4420,6 +4515,9 @@ hairline({
   const idleNudge = () => { clearTimeout(idleT); idleT = setTimeout(async () => { if (busy || pending) return; K('nudge'); await vex('Ready for the next one.', '', 'nudge'); }, 9000); };
   const run = async S => {
     clearTimeout(idleT); busy = true; rush = false; spam = 0; spoke = false; tz = performance.now();
+    /* the history rail hears every order: what you asked, then how it ended */
+    const kind = S.card ? 'swap' : S.chart ? 'chart' : 'ask'; let result = S.card ? '' : 'Answered';
+    dispatchEvent(new CustomEvent('vex:run', { detail: { q: S.you, kind } }));
     you(S.you); K('request', S.you); setHint('Press to hurry her'); await beat(350);
     sys(S.card ? 'Routing order' : 'Reading market'); await beat(300);
     await tools(S.tools);
@@ -4437,7 +4535,7 @@ hairline({
         lis[k].classList.remove('run'); lis[k].classList.add(ok ? 'ok' : 'no'); b.textContent = ok ? 'Pass' : 'Fail'; if (!ok) bad = true;
       }
       if (bad) {
-        status('Blocked', 'no'); act.textContent = 'Nothing signed';
+        status('Blocked', 'no'); act.textContent = 'Nothing signed'; result = 'Blocked';
         K('refused'); await vex(S.refuse, 't-no', S.v.refuse);
       } else {
         status('Cleared', 'ok'); act.textContent = 'Awaiting approval';
@@ -4448,12 +4546,16 @@ hairline({
         await new Promise(r => { pending = r; });
         pending = null; busy = true; clearInterval(tick); exp.textContent = '';
         K('approve'); status('Signing', 'run'); act.textContent = 'Signing on device'; setHint('Signing'); sys('Signing on device'); await beat(1000);
-        status('Signed', 'done'); act.textContent = 'Sent, simulated'; exp.textContent = '';
+        status('Signed', 'done'); act.textContent = 'Sent, simulated'; exp.textContent = ''; result = 'Signed';
         K('done'); await vex(S.done, 't-ok', S.v.done);
       }
     }
     rush = false; busy = false; K('idle'); setHint('Press vEXIT for the next order'); idleNudge();
+    dispatchEvent(new CustomEvent('vex:end', { detail: { q: S.you, kind, result } }));
   };
+  /* for the history rail: ask again, or start a clean chat (only when she is free) */
+  window.vexAsk = q => { if (busy || pending) return false; touched = true; run(fromText(q)); return true; };
+  window.vexNew = () => { if (busy || pending) return false; touched = true; clearTimeout(idleT); thread.querySelectorAll(':scope > li').forEach(li => li.remove()); thread.classList.remove('scrolled'); K('hi'); vex('I’m Vex. I trade inside your limits.', '', 'hi'); setHint('Press vEXIT to send'); return true; };
   window.vexPress = () => {
     touched = true; K('press');
     if (pending) { pending(); return; }
@@ -4557,8 +4659,8 @@ hairline({
       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setRisk(ks[Math.max(0, i - 1)]); segs[Math.max(0, i - 1)].focus(); } });
     setRisk(risk, true);
     /* centred on her head, not on the column: the rig draws her head a little left of the canvas middle (about 4% of its height) */
-    const cast = rk.parentElement, place = () => { const r = cast.getBoundingClientRect(); const land = innerWidth <= 900 && innerWidth > innerHeight; rk.style.left = (innerWidth > 900 ? r.width / 2 - r.height * 0.042 : land ? r.width * 0.22 : r.width / 2) + 'px'; };
-    place(); new ResizeObserver(place).observe(cast);
+    const cast = rk.parentElement, place = () => { if (rk.dataset.k) return; const r = cast.getBoundingClientRect(); const land = innerWidth <= 900 && innerWidth > innerHeight; rk.style.left = (innerWidth > 900 ? r.width / 2 - r.height * 0.042 : land ? r.width * 0.22 : r.width / 2) + 'px'; };
+    place(); new ResizeObserver(place).observe(cast); window.vexRiskPlace = place;
   }
   /* header status: the runtime clock and what Vex is doing */
   const phSt = null;
@@ -4611,6 +4713,98 @@ hairline({
 })();
 </script>
 <script>
+/* History rail: the outermost column on the left, under the grid key. Collapsed it is a strip of square cells
+   (open, new chat, your last orders as icons, you); open, a panel slides out beside it with every order and how it ended.
+   Clicking an order asks Vex again. Desktop only; the history stays in this browser. */
+(() => {
+  const hc = document.querySelector('.hc'); if (!hc) return;
+  const KEY = 'vexHist', MAX = 24;
+  const P = {
+    side: 'M13 3a9 9 0 0 0-9 9H1l3.9 3.9.1.1L9 12H6a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 13 3zm-1 5v5.2l4.3 2.55.75-1.25-3.55-2.1V8z',
+    plus: 'M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.5L4 22v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 6.5v3H8v2h3v3h2v-3h3v-2h-3v-3z',
+    swap: 'M7 2.5 1.5 8H5v8h4V8h3.5zM17 21.5l5.5-5.5H19V8h-4v8h-3.5z',
+    chart: 'M3 13h4.5v8H3zM9.75 7h4.5v14h-4.5zM16.5 3H21v18h-4.5z',
+    ask: 'M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.5L4 22v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z',
+    no: 'M12 1.8 20.5 5v6.2c0 5.1-3.5 9.6-8.5 11-5-1.4-8.5-5.9-8.5-11V5zM8.8 8.2 7.4 9.6l3.2 3.2-3.2 3.2 1.4 1.4 3.2-3.2 3.2 3.2 1.4-1.4-3.2-3.2 3.2-3.2-1.4-1.4-3.2 3.2z',
+  };
+  const ic = (d, cls = '') => `<svg class="rl-ic ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="${d}"/></svg>`;
+  const iconOf = e => e.result === 'Blocked' ? P.no : P[e.kind] || P.ask;
+  /* the demo's own three orders stand in until you have sent some yourself */
+  const SEED = [
+    { q: 'Swap 200 USDC to ETH, max 1% slippage.', kind: 'swap', result: 'Signed', t: 0 },
+    { q: 'Analyze BTC, 4h.', kind: 'chart', result: 'Answered', t: 0 },
+    { q: 'All in on this new token, 25% slippage.', kind: 'swap', result: 'Blocked', t: 0 },
+  ];
+  let list; try { list = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+  if (!Array.isArray(list)) list = SEED.slice();
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(list.filter(e => !e.live).slice(0, MAX))); } catch (e) {} };
+
+  const rail = document.createElement('aside');
+  rail.className = 'rail'; rail.setAttribute('aria-label', 'Chat history');
+  rail.innerHTML = `
+    <div class="rl-col">
+      <div class="rl-recent" role="list"></div>
+      <button class="rl-cell rl-tog" type="button" aria-expanded="false" aria-controls="rlPanel" data-tip="History">${ic(P.side)}<span class="visually-hidden">Chat history</span></button>
+      <div class="rl-cell rl-me" aria-hidden="true"><img alt="" src="${window.VEX_USER_AVATAR || ''}"></div>
+    </div>
+    <div class="rl-scrim" aria-hidden="true"></div>
+    <div class="rl-panel" id="rlPanel" role="region" aria-label="History" inert>
+      <div class="rl-head"><span class="rl-h">History</span><span class="rl-n"></span></div>
+      <div class="rl-list"></div>
+    </div>`;
+  hc.insertBefore(rail, hc.firstChild);
+  const tog = rail.querySelector('.rl-tog'), panel = rail.querySelector('.rl-panel'), recent = rail.querySelector('.rl-recent'), box = rail.querySelector('.rl-list'), cnt = rail.querySelector('.rl-n');
+
+  const hhmm = t => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  const dayOf = t => { if (!t) return 'Earlier'; const d = new Date(t), n = new Date(); if (d.toDateString() === n.toDateString()) return 'Today'; n.setDate(n.getDate() - 1); return d.toDateString() === n.toDateString() ? 'Yesterday' : 'Earlier'; };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const draw = () => {
+    cnt.textContent = '';
+    recent.innerHTML = list.filter(e => !(list.find(x => x.live) && !e.live && e.q.trim().toLowerCase() === list.find(x => x.live).q.trim().toLowerCase())).slice(0, 5).map((e, i) => `<button class="rl-cell rl-item${e.live ? ' live' : ''}" type="button" role="listitem" data-i="${i}" data-tip="${esc(e.q)}" data-r="${e.result || ''}">${ic(iconOf(e))}<span class="visually-hidden">${esc(e.q)}</span></button>`).join('');
+    let html = '', last = '';
+    /* an order being asked again shows once, as the live one */
+    const now = list.find(e => e.live), same = e => now && e !== now && e.q.trim().toLowerCase() === now.q.trim().toLowerCase();
+    list.forEach((e, i) => { if (same(e)) return;
+      const g = e.live ? 'Now' : dayOf(e.t);
+      if (g !== last) { html += `<div class="rl-g">${g}</div>`; last = g; }
+      html += `<button style="--n:${i}" class="rl-row rl-item${e.live ? ' live' : ''}" type="button" data-i="${i}" data-r="${e.result || ''}">${ic(iconOf(e))}<span class="rl-q">${esc(e.q)}</span><span class="rl-r">${e.live ? 'Working' : esc(e.result || '')}</span>${e.t ? `<span class="rl-t">${hhmm(e.t)}</span>` : ''}</button>`;
+    });
+    box.innerHTML = html || '<p class="rl-empty">Your orders will show here.</p>';
+  };
+  draw();
+
+  let open = false;
+  const setOpen = v => {
+    /* the panel pushes in: Kimm's side eases right and dims under it, so the move reads as one push */
+    const cp = document.querySelector('.hc-copy'); if (cp) rail.style.setProperty('--col', Math.max(0, cp.getBoundingClientRect().left - rail.getBoundingClientRect().right) + 'px');
+    open = v; rail.classList.toggle('open', v); document.documentElement.classList.toggle('rl-open', v); tog.setAttribute('aria-expanded', String(v));
+    if (v) panel.removeAttribute('inert'); else panel.setAttribute('inert', '');
+  };
+  tog.addEventListener('click', () => setOpen(!open));
+  addEventListener('keydown', e => { if (e.key === 'Escape' && open) { setOpen(false); tog.focus(); } });
+  document.addEventListener('pointerdown', e => { if (open && !rail.contains(e.target)) setOpen(false); });
+  const shake = el => { el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope'); };
+  const fresh = el => { if (window.vexNew && window.vexNew()) setOpen(false); else shake(el); };
+  /* New chat lives in the composer, mirroring Send */
+  const nw = document.getElementById('vxNew'); if (nw) nw.addEventListener('click', e => fresh(e.currentTarget));
+  rail.addEventListener('click', e => {
+    const b = e.target.closest('.rl-item'); if (!b) return;
+    const it = list[+b.dataset.i]; if (!it || it.live) return;
+    if (window.vexAsk && window.vexAsk(it.q)) setOpen(false); else shake(b);
+  });
+
+  /* live: an order shows at the top while she works, then takes its result */
+  addEventListener('vex:run', e => { list = list.filter(x => !x.live); list.unshift({ q: e.detail.q, kind: e.detail.kind, result: '', t: Date.now(), live: true }); draw(); });
+  addEventListener('vex:end', e => {
+    const it = list.find(x => x.live); if (!it) return;
+    delete it.live; it.result = e.detail.result || 'Answered';
+    /* the same words asked again replace the older entry */
+    list = [it, ...list.filter(x => x !== it && x.q.trim().toLowerCase() !== it.q.trim().toLowerCase())].slice(0, MAX);
+    save(); draw();
+  });
+})();
+</script>
+<script>
 /* The menu as a dial (after the Huly Dial): a white knob in the middle, the four groups on a ring around it,
    the links on an arc to the right. Turn it with the wheel, the arrows, a drag on the knob, or point at a group;
    the ring turns so the group you are in sits in the window, and a line runs from the window to the link you are on. */
@@ -4639,8 +4833,6 @@ hairline({
   };
   const ic = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
   const G = [
-    { name: 'Product', icon: 'cube', items: [['Desktop', 'desktop', 'https://projectvex.ai/desktop'], ['Cloud', 'cloud', 'https://projectvex.ai/cloud'], ['Token', 'token', 'https://projectvex.ai/token']] },
-    { name: 'Learn', icon: 'book', items: [['Whitepaper', 'paper', 'https://projectvex.ai/whitepaper'], ['Docs', 'book', 'https://projectvex.ai/docs/inference'], ['News', 'news', 'https://projectvex.ai/news']] },
     { name: 'On chain', icon: 'chain', items: [['$VEX contract', 'hex', 'https://robinhoodchain.blockscout.com/token/0x8Ff92566f2e81BDd68EDfAa8cde73942A723796b'], ['Fee treasury', 'vault', 'https://robinhoodchain.blockscout.com/address/0xe341f3da256C38356bce4Afd456d7fa36E356E94'], ['Source', 'code', 'https://github.com/Vex-Foundation/Vex']] },
     { name: 'Community', icon: 'people', items: [['X', 'x', 'https://x.com/ProjectVEXai'], ['Telegram', 'tg', 'https://t.me/ProjectVexai'], ['GitHub', 'gh', 'https://github.com/Vex-Foundation']] },
   ];
@@ -5686,7 +5878,7 @@ if (hero && gl2) {
   /* exactly the left half: from the page edge to the chat panel's edge, header to footer rule */
   const fit = () => { const cp = document.querySelector('.hc-copy'), st = document.querySelector('.hc-strip'), h = hero.getBoundingClientRect();
     if (innerWidth <= 900 || !cp) { box.style.width = ''; box.style.height = ''; return; }
-    box.style.width = (cp.getBoundingClientRect().left - h.left) + 'px'; box.style.height = ((st ? st.getBoundingClientRect().top : h.bottom) - h.top) + 'px'; };
+    box.style.width = (cp.getBoundingClientRect().left - box.getBoundingClientRect().left) + 'px'; box.style.height = ((st ? st.getBoundingClientRect().top : h.bottom) - h.top) + 'px'; };
   fit(); addEventListener('resize', fit); if (document.fonts) document.fonts.ready.then(fit); setTimeout(fit, 1500);
   document.documentElement.classList.add('has-gascii');
   window.vexBg = GradientASCII(box, { characters: ' VEX', cellSize: 20, density: 0.5, glyphOpacity: 0.6, gradientOpacity: 0.8, dpr: Math.min(2, devicePixelRatio || 1), fontFamily: '"Roboto Mono", ui-monospace, monospace' });
@@ -5714,6 +5906,8 @@ if (hero && gl2) {
   /* three layouts: desktop (wide), side (phone or small tablet held sideways: Kimm left, talk right), stack (portrait: Kimm above the talk) */
   const side = matchMedia('(max-width: 900px) and (orientation: landscape)');
   const mode = () => !small.matches ? 'wide' : side.matches ? 'side' : 'stack';
+  /* her measures in model units: top of the hair, the centre of her face, her widest pose, and the arc's own height in px at scale 1 */
+  const KM = { head: 315, face: 2250, wide: 3300, arc: 194, foot: 8921 };
   const TOP = () => { const H = Math.max(1, host.clientHeight), m = mode(); return m === 'stack' ? Math.max(0.08, 66 / H) : m === 'side' ? Math.max(0.1, 64 / H) : Math.max(0.2, 172 / H); };
 
   /* what each moment looks like: hand toggles, marks, face */
@@ -5818,15 +6012,34 @@ if (hero && gl2) {
     const fit = () => {
       const W = Math.max(1, host.clientWidth), H = Math.max(1, host.clientHeight), mw = im.width, mh = im.height;
       if (app.renderer.width !== Math.round(W * dpr) || app.renderer.height !== Math.round(H * dpr)) app.renderer.resize(W, H);
-      /* desktop: head to waist. Portrait phone: head and shoulders above the talk. Sideways: a little more of her */
-      const m = mode(), crop = +(host.dataset.crop || (m === 'stack' ? 0.78 : m === 'side' ? 0.5 : 0.6));
-      /* height sets her size, but never wider than her column: a narrow window shrinks her instead of cutting her arms */
-      const s = Math.min(H / (mh * crop), W / (mw * (m === 'wide' ? 0.62 : m === 'side' ? 0.46 : 0.7))); model.scale.set(s);
-      model.x = (W - mw * s) / 2 + W * +(host.dataset.shift || 0); model.y = H * TOP() + (RM ? 0 : jy);
-      fit.s = s; fit.mw = mw; fit.mh = mh;
+      const m = mode(), rk = document.querySelector('.risk');
+      if (m === 'wide' && !host.dataset.crop) {
+        /* desktop: framed like a portrait. Her face sits on the centre line of her column, the risk arc right over her head,
+           and the bigger the screen, the closer the shot: head to hips on a laptop, head to waist on a large display */
+        const hr = host.getBoundingClientRect(), cast = host.closest('.hc-cast'), cr = cast.getBoundingClientRect();
+        const rail = document.querySelector('.rail'), cp = document.querySelector('.hc-copy'), st = document.querySelector('.hc-strip');
+        const colL = rail && rail.offsetWidth ? rail.getBoundingClientRect().right : cast.closest('.hc').getBoundingClientRect().left;
+        const colR = cp ? cp.getBoundingClientRect().left : cr.right, floor = st ? st.getBoundingClientRect().top : hr.bottom;
+        const navB = cast.closest('.hc').getBoundingClientRect().top, colH = floor - navB, cx = (colL + colR) / 2;
+        const t = clamp((colH - 620) / 640, 0, 1), span = 4300 - 1300 * t;
+        const arcTop = cr.top + 12;
+        let s = 0.14, k = 0.8;
+        for (let i = 0; i < 3; i++) { k = clamp(s * 5.6, 0.55, 1.15); const hd = arcTop + KM.arc * k + 6; s = Math.min((floor - hd) / span, (colR - colL) * 0.92 / KM.wide); }
+        const head = arcTop + KM.arc * k + 6;
+        model.scale.set(s); model.x = cx - hr.left - KM.face * s; fit.y0 = head - hr.top - KM.head * s;
+        if (rk) { rk.dataset.k = '1'; rk.style.setProperty('--rk-s', k.toFixed(3)); rk.style.left = (cx - cr.left) + 'px'; rk.style.top = '12px'; }
+      } else {
+        if (rk && rk.dataset.k) { delete rk.dataset.k; rk.style.removeProperty('--rk-s'); rk.style.top = ''; if (window.vexRiskPlace) window.vexRiskPlace(); }
+        /* portrait phone: head and shoulders above the talk. Sideways: a little more of her */
+        const crop = +(host.dataset.crop || (m === 'stack' ? 0.78 : m === 'side' ? 0.5 : 0.6));
+        const s = Math.min(H / (mh * crop), W / (mw * (m === 'wide' ? 0.62 : m === 'side' ? 0.46 : 0.7))); model.scale.set(s);
+        model.x = (W - mw * s) / 2 + W * +(host.dataset.shift || 0); fit.y0 = H * TOP();
+      }
+      model.y = fit.y0 + (RM ? 0 : jy);
+      fit.s = model.scale.x; fit.mw = mw; fit.mh = mh;
       app.render();
     };
-    fit(); new ResizeObserver(fit).observe(host); host._fit = fit;
+    fit(); new ResizeObserver(fit).observe(host); host._fit = fit; host._app = app; host._model = model;
     /* every frame: ease each driven parameter toward its target, after the motions and physics inputs */
     const put = (id, v) => { const i = ids[id]; if (i !== undefined) core.setParameterValueByIndex(i, v); };
     im.on('beforeModelUpdate', () => {
@@ -5896,7 +6109,7 @@ if (hero && gl2) {
       if (shut > 0.01) for (const e of ['ParamEyeLOpen', 'ParamEyeROpen']) { const i = ids[e]; if (i !== undefined) core.setParameterValueByIndex(i, core.getParameterValueByIndex(i) * (1 - shut)); }
       if (hop > 0) { hv -= 150 * hop; hop = 0; }
       { const w = 13, z = 0.45, a = -2 * z * w * hv - w * w * jy; hv += a * dt; jy += hv * dt; }
-      model.y = host.clientHeight * TOP() + (RM ? 0 : jy);
+      model.y = (fit.y0 === undefined ? host.clientHeight * TOP() : fit.y0) + (RM ? 0 : jy);
     });
     try { model.motion('Idle', 0, 1); } catch (e) {}
     setMood('rest'); ready = true;

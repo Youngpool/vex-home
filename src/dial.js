@@ -26,8 +26,6 @@
   };
   const ic = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
   const G = [
-    { name: 'Product', icon: 'cube', items: [['Desktop', 'desktop', 'https://projectvex.ai/desktop'], ['Cloud', 'cloud', 'https://projectvex.ai/cloud'], ['Token', 'token', 'https://projectvex.ai/token']] },
-    { name: 'Learn', icon: 'book', items: [['Whitepaper', 'paper', 'https://projectvex.ai/whitepaper'], ['Docs', 'book', 'https://projectvex.ai/docs/inference'], ['News', 'news', 'https://projectvex.ai/news']] },
     { name: 'On chain', icon: 'chain', items: [['$VEX contract', 'hex', 'https://robinhoodchain.blockscout.com/token/0x8Ff92566f2e81BDd68EDfAa8cde73942A723796b'], ['Fee treasury', 'vault', 'https://robinhoodchain.blockscout.com/address/0xe341f3da256C38356bce4Afd456d7fa36E356E94'], ['Source', 'code', 'https://github.com/Vex-Foundation/Vex']] },
     { name: 'Community', icon: 'people', items: [['X', 'x', 'https://x.com/ProjectVEXai'], ['Telegram', 'tg', 'https://t.me/ProjectVexai'], ['GitHub', 'gh', 'https://github.com/Vex-Foundation']] },
   ];

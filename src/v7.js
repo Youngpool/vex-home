@@ -25,6 +25,9 @@
      and when the layout itself changes (desktop, sideways, portrait) the hero fades through the swap instead of jumping */
   {
     const H = document.documentElement; let rt = 0;
+    /* big screens: the talk and the composer grow with the window, so text never shrinks to a corner on a large display */
+    const zoom = () => H.style.setProperty('--z', Math.max(1, Math.min(1.5, innerWidth / 1760)).toFixed(3));
+    zoom(); addEventListener('resize', zoom, { passive: true });
     addEventListener('resize', () => { H.classList.add('rs'); clearTimeout(rt); rt = setTimeout(() => H.classList.remove('rs'), 220); }, { passive: true });
     const swap = () => { if (RM) return; H.classList.remove('swap'); void H.offsetWidth; H.classList.add('swap'); setTimeout(() => H.classList.remove('swap'), 520); };
     for (const q of ['(max-width: 900px)', '(max-width: 900px) and (orientation: landscape)', '(min-width: 601px)']) matchMedia(q).addEventListener('change', swap);
@@ -535,6 +538,9 @@
   const idleNudge = () => { clearTimeout(idleT); idleT = setTimeout(async () => { if (busy || pending) return; K('nudge'); await vex('Ready for the next one.', '', 'nudge'); }, 9000); };
   const run = async S => {
     clearTimeout(idleT); busy = true; rush = false; spam = 0; spoke = false; tz = performance.now();
+    /* the history rail hears every order: what you asked, then how it ended */
+    const kind = S.card ? 'swap' : S.chart ? 'chart' : 'ask'; let result = S.card ? '' : 'Answered';
+    dispatchEvent(new CustomEvent('vex:run', { detail: { q: S.you, kind } }));
     you(S.you); K('request', S.you); setHint('Press to hurry her'); await beat(350);
     sys(S.card ? 'Routing order' : 'Reading market'); await beat(300);
     await tools(S.tools);
@@ -552,7 +558,7 @@
         lis[k].classList.remove('run'); lis[k].classList.add(ok ? 'ok' : 'no'); b.textContent = ok ? 'Pass' : 'Fail'; if (!ok) bad = true;
       }
       if (bad) {
-        status('Blocked', 'no'); act.textContent = 'Nothing signed';
+        status('Blocked', 'no'); act.textContent = 'Nothing signed'; result = 'Blocked';
         K('refused'); await vex(S.refuse, 't-no', S.v.refuse);
       } else {
         status('Cleared', 'ok'); act.textContent = 'Awaiting approval';
@@ -563,12 +569,16 @@
         await new Promise(r => { pending = r; });
         pending = null; busy = true; clearInterval(tick); exp.textContent = '';
         K('approve'); status('Signing', 'run'); act.textContent = 'Signing on device'; setHint('Signing'); sys('Signing on device'); await beat(1000);
-        status('Signed', 'done'); act.textContent = 'Sent, simulated'; exp.textContent = '';
+        status('Signed', 'done'); act.textContent = 'Sent, simulated'; exp.textContent = ''; result = 'Signed';
         K('done'); await vex(S.done, 't-ok', S.v.done);
       }
     }
     rush = false; busy = false; K('idle'); setHint('Press vEXIT for the next order'); idleNudge();
+    dispatchEvent(new CustomEvent('vex:end', { detail: { q: S.you, kind, result } }));
   };
+  /* for the history rail: ask again, or start a clean chat (only when she is free) */
+  window.vexAsk = q => { if (busy || pending) return false; touched = true; run(fromText(q)); return true; };
+  window.vexNew = () => { if (busy || pending) return false; touched = true; clearTimeout(idleT); thread.querySelectorAll(':scope > li').forEach(li => li.remove()); thread.classList.remove('scrolled'); K('hi'); vex('I’m Vex. I trade inside your limits.', '', 'hi'); setHint('Press vEXIT to send'); return true; };
   window.vexPress = () => {
     touched = true; K('press');
     if (pending) { pending(); return; }
@@ -672,8 +682,8 @@
       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setRisk(ks[Math.max(0, i - 1)]); segs[Math.max(0, i - 1)].focus(); } });
     setRisk(risk, true);
     /* centred on her head, not on the column: the rig draws her head a little left of the canvas middle (about 4% of its height) */
-    const cast = rk.parentElement, place = () => { const r = cast.getBoundingClientRect(); const land = innerWidth <= 900 && innerWidth > innerHeight; rk.style.left = (innerWidth > 900 ? r.width / 2 - r.height * 0.042 : land ? r.width * 0.22 : r.width / 2) + 'px'; };
-    place(); new ResizeObserver(place).observe(cast);
+    const cast = rk.parentElement, place = () => { if (rk.dataset.k) return; const r = cast.getBoundingClientRect(); const land = innerWidth <= 900 && innerWidth > innerHeight; rk.style.left = (innerWidth > 900 ? r.width / 2 - r.height * 0.042 : land ? r.width * 0.22 : r.width / 2) + 'px'; };
+    place(); new ResizeObserver(place).observe(cast); window.vexRiskPlace = place;
   }
   /* header status: the runtime clock and what Vex is doing */
   const phSt = null;
