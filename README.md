@@ -1,58 +1,55 @@
 # VEX home (projectvex.ai rebuild)
 
-One-screen home: Kimm (Live2D Vex) on the left, the chat with Vex on the right, the vEXIT key in the footer,
-the risk arc over her head, the dial menu behind the grid key. Version 93 of the preview artifact.
+One screen: Kimm, the Live2D face of Vex, on the left; a chat with Vex on the right; the history rail on the far left; the dial menu behind the grid key, with the full design system inside it. Version 99.
 
-- `src/rail.js`: the history rail on the far left (desktop): recent orders as icons, a panel that slides out, click an order to ask again, New chat. History is kept in this browser (localStorage `vexHist`).
+![Home](assets/screens/01-home.png)
+
+## Start here
+
+| If you are | Read |
+|---|---|
+| Engineering | [`docs/HANDOFF.md`](docs/HANDOFF.md): run, build, file map, APIs, order flow, how to connect the real runtime |
+| Design | [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md) and [`docs/DESIGN-RULES.md`](docs/DESIGN-RULES.md); tokens as code in [`docs/tokens.css`](docs/tokens.css) / [`docs/tokens.json`](docs/tokens.json) |
+| Content | [`docs/COPY.md`](docs/COPY.md): how Vex speaks, every line and scenario |
+| Character / sound | [`docs/KIMM.md`](docs/KIMM.md), [`docs/MUSIC.md`](docs/MUSIC.md) |
+
+The design system is also live in the page: menu → **Design system** (or open `index.html#ds-colour`).
 
 ## Run it
 
-`dist/` is ready to serve. Kimm's model is fetched at runtime, so open it over http, not as a file:
+```
+cd dist
+python3 -m http.server 8000     # open http://localhost:8000
+```
 
-    cd dist
-    python3 -m http.server 8000
-    # open http://localhost:8000
+Serve over http, not as a file (Kimm's model is fetched at runtime). Libraries are in `dist/lib`, so it works offline. Sound starts after the first click or key press.
 
-Libraries are in `dist/lib`, so the page works offline. Sound starts after the first click or key press (browser rule).
+## Rebuild after editing `src/`
 
-## Rebuild after editing
+```
+python3 build.py          # local libraries (dist/lib)
+python3 build.py --cdn    # libraries from jsdelivr, as in the published preview
+```
 
-    python3 build.py          # local libraries (dist/lib)
-    python3 build.py --cdn    # libraries from jsdelivr, as in the published artifact
+## What is in the package
 
-`build.py` inlines everything into `dist/index.html`: CSS, scripts, Hairline figures, fonts, voice lines.
-
-## Where things are
-
-| Path | What |
+| Folder | Contents |
 |---|---|
-| `src/index.html` | page template ({{CSS}}, {{SCRIPT}}, {{VOICE}}, {{HAIRLINE}}, {{MARK}} are filled by the build) |
-| `src/v16.css` | all styles; later blocks override earlier ones (v38 … v59 at the end are the current design) |
-| `src/v7.js` | page logic: chat engine and scenarios, voice + music, vEXIT key, ASCII field, risk arc, loader |
-| `src/dial.js` | the dial menu opened by the grid key |
-| `src/cursor.js` | the cursor: one white disc following the pointer with gsap.quickTo, grows over targets (fine pointers only) |
-| `src/reel.js` | the showreel: a corner loop that opens full screen |
-| `src/user-avatar.webp` | the user's default avatar in the chat |
-| `reel/vex-reel.mp4` | the 20 s showreel (page capture + the music loop) |
-| `src/gradient-ascii.js` | the background behind Kimm: React Bits Gradient ASCII ported to plain JS (MIT + Commons Clause, David Haz) |
-| `src/kimm.js` | Kimm: Live2D loading, moods, idle acts, hand crossfades, springs, lip sync |
-| `src/hl/`, `src/vendor/hairline-kernel.js` | Hairline line figures |
-| `src/fonts/` | Be Vietnam Pro, Roboto Mono (woff2) |
-| `model/` | Kimm Live2D model for the web (moc renamed `kimm.moc.wasm`, 4096 webp textures) |
-| `model-source/kimm-original/` | the original Kimm model as delivered (8192 textures, expressions, VTube settings) |
-| `music/` | the music loop rendered to mp3/wav, and the tool that renders it |
-| `voice/*.mp3`, `voice/lines.json` | Vex's recorded lines and their text |
-| `voice/scripts/` | Kokoro render scripts (af_bella 0.7 + jf_gongitsune 0.3, pitch lift 1.16) |
+| `dist/` | the built page, ready to serve |
+| `src/` | source: template, styles, scripts, fonts, Hairline figures |
+| `docs/` | handoff, design system, design rules, copy, tokens, Kimm and music notes, changelog |
+| `assets/brand/` | the VEX mark (SVG, light and dark) |
+| `assets/icons/` | every glyph as SVG (24px grid, `currentColor`) |
+| `assets/kimm-states/` | Kimm's six moods as transparent PNGs |
+| `assets/screens/` | screenshots of every state, each design system chapter, mobile and 2560 wide |
+| `model/`, `model-source/` | Kimm's Live2D model for the web, and the original as delivered |
+| `voice/` | Vex's recorded lines, their text, the render scripts |
+| `music/` | the night-drive loop and the tool that renders it |
+| `reel/` | the Tutorial video |
 
-## More
+## Licences to note
 
-- `KIMM.md`: Kimm's parameters, the hand rig findings, moods, acts, motion, placement.
-- `MUSIC.md`: the generated night-drive loop, how it ducks under her voice, how to change and re-render it.
-
-## Notes
-
-- Design rules: black, ASCII field, tactical modernism; one 1px rule at 7% (24% for selected); no gradients except fading rules;
-  blue only on Send and Download; filled icons.
-- Risk presets live in `RISK` in `src/v7.js` (slippage / size / price age limits per strategy).
-- Lines without a recorded take are read live by the browser's speech engine (different voice from Vex's recordings).
-- To add a recorded line: render it with `voice/scripts/render2.py`, drop the mp3 in `voice/`, rebuild.
+- Kimm (Live2D model) and Vex's voice lines belong to VEX Labs.
+- `src/gradient-ascii.js` is a port of React Bits Gradient ASCII (MIT + Commons Clause, David Haz).
+- GSAP and its plugins (free), PIXI.js (MIT), pixi-live2d-display (MIT), Live2D Cubism Core (Live2D Proprietary Software License: check its terms before a commercial release).
+- Be Vietnam Pro and Roboto Mono: SIL Open Font License.

@@ -847,6 +847,6 @@ if (hero && gl2) {
     box.style.width = (cp.getBoundingClientRect().left - box.getBoundingClientRect().left) + 'px'; box.style.height = ((st ? st.getBoundingClientRect().top : h.bottom) - h.top) + 'px'; };
   fit(); addEventListener('resize', fit); if (document.fonts) document.fonts.ready.then(fit); setTimeout(fit, 1500);
   document.documentElement.classList.add('has-gascii');
-  window.vexBg = GradientASCII(box, { characters: ' VEX', cellSize: 20, density: 0.5, glyphOpacity: 0.6, gradientOpacity: 0.8, dpr: Math.min(2, devicePixelRatio || 1), fontFamily: '"Roboto Mono", ui-monospace, monospace' });
+  window.vexBg = GradientASCII(box, { characters: ' VEX', cellSize: 20, density: 0.5, glyphOpacity: 0.6, gradientOpacity: 0.8, dpr: window.__rec ? 0.7 : Math.min(2, devicePixelRatio || 1), fontFamily: '"Roboto Mono", ui-monospace, monospace' });
 }
 })();

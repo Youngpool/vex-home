@@ -1,9 +1,9 @@
 {
  "lines": {
   "hi": "I'm Vex. I trade inside your limits.",
-  "swap1": "Route found. Checking your limits.",
-  "swap2": "Cleared. Your call.",
-  "swap3": "Signed by you. Sent.",
+  "swap1": "Route found on KyberSwap. Checking your limits.",
+  "swap2": "Every field is on the card. Your call.",
+  "swap3": "Signed with your key. It never left this computer.",
   "ape1": "Checking against your limits.",
   "ape2": "Blocked. Over your limits. Nothing signed.",
   "btc1": "Higher lows on the 4h. Watching the key level.",
@@ -21,13 +21,15 @@
   "ape2b": "No. That breaks your limits. Nothing signed.",
   "riskc": "Conservative. Tighter limits.",
   "riskb": "Balanced. Your usual limits.",
-  "riska": "Aggressive. Wider limits, still enforced."
+  "riska": "Aggressive. Wider limits, still enforced.",
+  "bridge1": "Route found on Relay. Checking where it goes.",
+  "bridge2": "Blocked. A bridge only goes to your own wallet. Nothing signed."
  },
  "dur": {
   "hi": 2.5,
-  "swap1": 2.03,
-  "swap2": 1.09,
-  "swap3": 1.51,
+  "swap1": 2.88,
+  "swap2": 2.37,
+  "swap3": 2.92,
   "ape1": 1.41,
   "ape2": 2.24,
   "btc1": 3.07,
@@ -45,6 +47,8 @@
   "ape2b": 2.56,
   "riskc": 1.98,
   "riskb": 1.75,
-  "riska": 2.67
+  "riska": 2.67,
+  "bridge1": 2.67,
+  "bridge2": 3.8
  }
 }

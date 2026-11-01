@@ -23,11 +23,23 @@
     tg: '<path d="M21.5 3.5L2.5 11l5.6 2 2 6.3 3.2-3.6 4.6 3.6z"/>',
     gh: '<path d="M12 2a10 10 0 00-3.2 19.5c.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.2-3.4-1.2-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.6.4-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 015 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0012 2z"/>',
     list: '<path d="M3 6h12v2H3zm0 5h12v2H3zm0 5h7v2H3zm12.5 1.6l2-2 1.5 1.5 3.5-3.5 1.4 1.4-4.9 4.9z"/>',
+    cells: '<path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3z"/><path opacity=".45" d="M13 13h8v8h-8z"/>',
+    shield: '<path d="M12 1.8l8.5 3.2v6.2c0 5.1-3.5 9.6-8.5 11-5-1.4-8.5-5.9-8.5-11V5z"/>',
+    palette: '<path fill-rule="evenodd" d="M12 3a9 9 0 100 18c1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.7 1.8-1.7H17a4 4 0 004-4c0-4.6-4-8.2-9-8.2zM7 13a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm2.5-4a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm2.5 4a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/>',
+    type: '<path d="M4 4h16v4.5h-2.4V6.4h-4.4V18h2.6v2H8.2v-2h2.6V6.4H6.4v2.1H4z"/>',
+    layout: '<path fill-rule="evenodd" d="M3 3h18v18H3zm2 2v4h14V5zm0 6v8h4v-8zm6 0v8h8v-8z"/>',
+    star: '<path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3l-6.2 3.6 1.6-7L2 9.2l7.1-.6z"/>',
+    curve: '<path d="M3 17.5C9 17.5 10.5 4 21 4v2.4c-8.6 0-9.6 13.5-18 13.5z"/><path opacity=".45" d="M3 21h18v-1.6H3z"/>',
+    person: '<path d="M12 3a4 4 0 110 8 4 4 0 010-8zM4 21c.5-4.6 3.7-7.5 8-7.5s7.5 2.9 8 7.5z"/>',
+    bubble: '<path d="M4 3h16a2 2 0 012 2v11a2 2 0 01-2 2H9.5L4 22v-4a2 2 0 01-2-2V5a2 2 0 012-2z"/>',
   };
+  window.VEX_ICONS = I;
   const ic = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
   const G = [
     { name: 'On chain', icon: 'chain', items: [['$VEX contract', 'hex', 'https://robinhoodchain.blockscout.com/token/0x8Ff92566f2e81BDd68EDfAa8cde73942A723796b'], ['Fee treasury', 'vault', 'https://robinhoodchain.blockscout.com/address/0xe341f3da256C38356bce4Afd456d7fa36E356E94'], ['Source', 'code', 'https://github.com/Vex-Foundation/Vex']] },
     { name: 'Community', icon: 'people', items: [['X', 'x', 'https://x.com/ProjectVEXai'], ['Telegram', 'tg', 'https://t.me/ProjectVexai'], ['GitHub', 'gh', 'https://github.com/Vex-Foundation']] },
+    /* the house style, opened in place: each entry is a chapter of the design system panel (ds.js) */
+    { name: 'Design system', icon: 'cells', items: [['Principles', 'shield', '#ds-principles'], ['Colour', 'palette', '#ds-colour'], ['Type', 'type', '#ds-type'], ['Layout', 'layout', '#ds-layout'], ['Components', 'cube', '#ds-components'], ['Icons', 'star', '#ds-icons'], ['Motion', 'curve', '#ds-motion'], ['Character', 'person', '#ds-character'], ['Voice', 'bubble', '#ds-voice']] },
   ];
   /* on a phone the two header actions live in the dial too */
   if (small.matches) G.unshift({ name: 'Get Vex', icon: 'get', items: [['Download', 'get', 'https://projectvex.ai/download/auto'], ['Whitelist', 'list', 'https://t.me/ProjectVexai']] });
@@ -63,7 +75,7 @@
         </button>
         <span class="dl-wire" aria-hidden="true"></span>
       </div>
-      <ol class="dl-list">${items.map((it, i) => `<li data-i="${i}"><a href="${it.h}" target="_blank" rel="noopener" tabindex="-1">${ic(it.k)}<span>${it.t}</span></a></li>`).join('')}</ol>
+      <ol class="dl-list">${items.map((it, i) => `<li data-i="${i}"><a href="${it.h}"${it.h[0] === '#' ? '' : ' target="_blank" rel="noopener"'} tabindex="-1">${ic(it.k)}<span>${it.t}</span></a></li>`).join('')}</ol>
       <div class="dl-side">
         <button class="dl-x" type="button" aria-label="Close menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.4 5l5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4z"/></svg></button>
         <div class="dl-pill">
@@ -96,7 +108,8 @@
   /* a soft detent under each step */
   let actx = null;
   const tick = () => { if (RM) return; try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), g = actx.createGain(); o.type = 'triangle'; o.frequency.value = 2400; g.gain.setValueAtTime(0.025, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + 0.035); o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + 0.04); } catch (e) {} };
-  const follow = () => { const a = lis[sel].querySelector('a'); window.open(a.href, '_blank', 'noopener'); setOpen(false); };
+  const inPlace = h => h[0] === '#' && window.vexDS;
+  const follow = () => { const h = items[sel].h; if (inPlace(h)) { setOpen(false); window.vexDS.open(h.slice(1)); return; } window.open(h, '_blank', 'noopener'); setOpen(false); };
 
   const setOpen = v => {
     open = v; btn.setAttribute('aria-expanded', String(v)); document.body.classList.toggle('menu-open', v);
@@ -110,7 +123,7 @@
   $('.dl-up').addEventListener('click', () => go(-1));
   $('.dl-dn').addEventListener('click', () => go(1));
   $('.dl-ok').addEventListener('click', follow);
-  lis.forEach((li, i) => { li.addEventListener('pointerenter', () => { if (!small.matches) pick(i); }); li.querySelector('a').addEventListener('click', e => { if (i !== sel) { e.preventDefault(); pick(i); return; } setTimeout(() => setOpen(false), 50); }); });
+  lis.forEach((li, i) => { li.addEventListener('pointerenter', () => { if (!small.matches) pick(i); }); li.querySelector('a').addEventListener('click', e => { if (i !== sel) { e.preventDefault(); pick(i); return; } if (inPlace(items[i].h)) { e.preventDefault(); follow(); return; } setTimeout(() => setOpen(false), 50); }); });
   segs.forEach((s, gi) => { s.addEventListener('pointerenter', () => { if (items[sel].gi !== gi) pick(items.findIndex(it => it.gi === gi)); }); s.addEventListener('click', () => pick(items.findIndex(it => it.gi === gi))); });
   /* the wheel turns it a notch at a time */
   let acc = 0, wl = 0;

@@ -3,7 +3,7 @@
    Clicking an order asks Vex again. Desktop only; the history stays in this browser. */
 (() => {
   const hc = document.querySelector('.hc'); if (!hc) return;
-  const KEY = 'vexHist', MAX = 24;
+  const KEY = 'vexHist2', MAX = 24;
   const P = {
     side: 'M13 3a9 9 0 0 0-9 9H1l3.9 3.9.1.1L9 12H6a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 13 3zm-1 5v5.2l4.3 2.55.75-1.25-3.55-2.1V8z',
     plus: 'M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.5L4 22v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 6.5v3H8v2h3v3h2v-3h3v-2h-3v-3z',
@@ -12,15 +12,16 @@
     ask: 'M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.5L4 22v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z',
     no: 'M12 1.8 20.5 5v6.2c0 5.1-3.5 9.6-8.5 11-5-1.4-8.5-5.9-8.5-11V5zM8.8 8.2 7.4 9.6l3.2 3.2-3.2 3.2 1.4 1.4 3.2-3.2 3.2 3.2 1.4-1.4-3.2-3.2 3.2-3.2-1.4-1.4-3.2 3.2z',
   };
+  window.VEX_RAIL_ICONS = P;
   const ic = (d, cls = '') => `<svg class="rl-ic ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="${d}"/></svg>`;
   const iconOf = e => e.result === 'Blocked' ? P.no : P[e.kind] || P.ask;
   /* the demo's own three orders stand in until you have sent some yourself */
   const SEED = [
-    { q: 'Swap 200 USDC to ETH, max 1% slippage.', kind: 'swap', result: 'Signed', t: 0 },
-    { q: 'Analyze BTC, 4h.', kind: 'chart', result: 'Answered', t: 0 },
-    { q: 'All in on this new token, 25% slippage.', kind: 'swap', result: 'Blocked', t: 0 },
+    { q: 'Swap 200 USDC to ETH on Base, max 1% slippage.', kind: 'swap', result: 'Signed', t: 0 },
+    { q: 'Analyze BTC 4h.', kind: 'chart', result: 'Answered', t: 0 },
+    { q: 'Bridge 500 USDC to Solana and send it to 7xKq…9fPz.', kind: 'swap', result: 'Blocked', t: 0 },
   ];
-  let list; try { list = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+  let list; try { list = JSON.parse(localStorage.getItem('vexHist2') || 'null'); } catch (e) {}
   if (!Array.isArray(list)) list = SEED.slice();
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(list.filter(e => !e.live).slice(0, MAX))); } catch (e) {} };
 

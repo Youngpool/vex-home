@@ -160,7 +160,8 @@
     };
     let mask = null;
     const draw = t => {
-      if (!g) return;
+      /* the WebGL field has taken over: this one stays hidden, so it stops drawing */
+      if (!g || document.documentElement.classList.contains('has-gascii')) return;
       const s = t / 1000, small = W < 900, kx = small ? W * 0.5 : W * 0.27, ky = H * 0.42, hz = H * 0.8;
       g.fillStyle = '#05060b'; g.fillRect(0, 0, W, H);
       const buckets = Array.from({ length: N }, () => []); const glitches = [];
@@ -197,24 +198,36 @@
 
   /* ================= the talk: Kimm speaks to you; your only word is the vEXIT key =================
      One press sends the next order, or approves the one she is holding. Pressing while she works hurries her along. */
+  /* the demo follows VEX Desktop as projectvex.ai describes it: research tools, swaps routed by KyberSwap, bridges by Relay,
+     an approval card that shows every field that will be signed, keys that never leave the computer, and a runtime that refuses
+     what breaks your limits or the rules (a bridge never takes a recipient from the chat) */
   const SC = [
-    { you: 'Swap 200 USDC to ETH, max 1% slippage.',
-      tools: ['ETH price / Base', 'Route / 3 venues'],
-      lead: 'Route found. Checking your limits.', v: { lead: 'swap1', ask: 'swap2', done: 'swap3' },
-      card: { kind: 'Swap', title: '200 USDC → ETH', meta: ['Base', '3 venues', 'Slip 1%'],
+    { you: 'Swap 200 USDC to ETH on Base, max 1% slippage.',
+      tools: ['KyberSwap / route on Base', 'ETH price / 12s old'],
+      lead: 'Route found on KyberSwap. Checking your limits.', v: { lead: 'swap1', ask: 'swap2', done: 'swap3' },
+      card: { kind: 'Swap', title: '200 USDC → ETH', meta: ['Base', 'KyberSwap', 'Slip 1%'],
+        fields: [['Chain', 'Base'], ['Router', 'KyberSwap'], ['Min. received', '99% of quote'], ['VEX fee', '0.25%, after success']],
         checks: [['Slippage', '1%', '10%', 'ok'], ['Price age', '12s', '15m', 'ok'], ['Size', '2%', '20%', 'ok']] },
-      ask: 'Cleared. Your call.',
-      done: 'Signed by you. Sent.' },
+      ask: 'Every field is on the card. Your call.',
+      done: 'Signed with your key. It never left this computer.' },
     { you: 'All in on this new token, 25% slippage.',
-      tools: ['Contract / new pair', 'Liquidity / thin'],
+      tools: ['DexScreener / new pair', 'Liquidity / thin'],
       lead: 'Checking against your limits.', v: { lead: 'ape1', refuse: 'ape2' },
       card: { kind: 'Swap', title: 'ALL USDC → NEWTOKEN', meta: ['Base', 'New pair', 'Slip 25%'],
+        fields: [['Chain', 'Base'], ['Pair age', 'New'], ['Liquidity', 'Thin']],
         checks: [['Slippage', '25%', '10%', 'no'], ['Size', '100%', '20%', 'no']] },
       refuse: 'Blocked. Over your limits. Nothing signed.' },
-    { you: 'Analyze BTC, 4h.',
-      tools: ['Candles / 4h', 'Levels / 90d'],
+    { you: 'Analyze BTC 4h.',
+      tools: ['DexScreener / BTC pairs', 'Candles / 4h'],
       chart: true, v: { say: 'btc1' },
       say: 'Higher lows on the 4h. Watching the key level.' },
+    { you: 'Bridge 500 USDC to Solana and send it to 7xKq…9fPz.',
+      tools: ['Relay / Base to Solana', 'Recipient / from chat'],
+      lead: 'Route found on Relay. Checking where it goes.', v: { lead: 'bridge1', refuse: 'bridge2' },
+      card: { kind: 'Bridge', title: '500 USDC  Base → Solana', meta: ['Relay', 'Solana', 'Recipient set'],
+        fields: [['Route', 'Relay'], ['To', '7xKq…9fPz (from chat)']],
+        checks: [['Recipient', 'From chat', 'Own wallet', 'no'], ['Size', '5%', '20%', 'ok']] },
+      refuse: 'Blocked. A bridge only goes to your own wallet. Nothing signed.' },
   ];
   /* risk strategy, set on the arc above her head: the limits every order is checked against */
   const RISK = { c: { name: 'Conservative', slip: 1, size: 10, age: '5m', v: 'riskc', line: 'Conservative. Tighter limits.' },
@@ -223,7 +236,7 @@
   let risk = 'b'; try { risk = RISK[localStorage.getItem('vexRisk')] ? localStorage.getItem('vexRisk') : 'b'; } catch (e) {}
   const qty = t => { const m = String(t).match(/(\d+(?:\.\d+)?)\s*(s|m|h|%)?/i); if (!m) return 0; return +m[1] * ({ s: 1, m: 60, h: 3600 }[(m[2] || '').toLowerCase()] || 1); };
   const withRisk = card => { const R = RISK[risk], c = JSON.parse(JSON.stringify(card));
-    c.checks = c.checks.map(([n, v]) => { const l = /slip/i.test(n) ? R.slip + '%' : /size/i.test(n) ? R.size + '%' : R.age; return [n, v, l, qty(v) <= qty(l) ? 'ok' : 'no']; }); return c; };
+    c.checks = c.checks.map(([n, v, l0, st0]) => { if (!/slip|size|age/i.test(n)) return [n, v, l0, st0]; const l = /slip/i.test(n) ? R.slip + '%' : /size/i.test(n) ? R.size + '%' : R.age; return [n, v, l, qty(v) <= qty(l) ? 'ok' : 'no']; }); return c; };
   const thread = $('#thread'), hint = $('#vxHintT'), hintBox = $('#vxHint'), padEl = $('#vxPad');
   const stEl = $('#vxSt');
   /* the control's state follows the talk: armed, working, waiting for your approval */
@@ -271,7 +284,7 @@
       const pool = all.filter(k => k !== lastPick[id]), k = pool[(Math.random() * pool.length) | 0]; lastPick[id] = k; return k;
     };
     const stop = () => { if (cur) { try { cur.stop(); } catch (e) {} cur = null; } if (synth) { try { speechSynthesis.cancel(); } catch (e) {} synth = null; } };
-    const start = (b, offset = 0) => { stop(); const src = ctx.createBufferSource(); src.buffer = b; src.connect(an); src.start(0, offset); cur = src; src.onended = () => { if (cur === src) cur = null; }; };
+    const start = (b, offset = 0) => { if (window.__vlog) window.__vlog(last && last.id, offset); stop(); const src = ctx.createBufferSource(); src.buffer = b; src.connect(an); src.start(0, offset); cur = src; src.onended = () => { if (cur === src) cur = null; }; };
     /* browsers hold sound until the first touch; if she was mid-line then, she picks the line up where the text is */
     const unlock = () => {
       if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
@@ -427,6 +440,63 @@
   };
   /* system state lines, set between the talk: what the runtime is doing right now */
   const sys = (text, kind = 'run') => push(el('li', 't-sys t-sys--' + kind, `<i aria-hidden="true"></i><span>${text}</span>`));
+  /* reasoning: one block per order. The model's thoughts and the tools it calls land as a trace, each line decoding into place
+     with its own clock; the runtime's hand-off closes it. When she is done it folds to one line, "Reasoned for 2.8s", which opens again on a click */
+  const GLY = 'VEX/<>\\_-=+#01';
+  const decode = (node, text, ms) => new Promise(done => {
+    if (RM || rush) { node.textContent = text; return done(); }
+    const t0 = performance.now();
+    const f = () => {
+      if (rush || !node.isConnected) { node.textContent = text; return done(); }
+      const u = Math.min(1, (performance.now() - t0) / ms), k = Math.floor(text.length * u);
+      let out = text.slice(0, k);
+      for (let i = k; i < Math.min(text.length, k + 6); i++) out += text[i] === ' ' ? ' ' : GLY[(Math.random() * GLY.length) | 0];
+      node.textContent = out; if (u >= 1) { node.textContent = text; return done(); } requestAnimationFrame(f);
+    }; f();
+  });
+  const SPIN = ['\u2596', '\u2598', '\u259D', '\u2597'];
+  const reasonOf = S => {
+    const C = S.card, f = C && C.fields ? Object.fromEntries(C.fields) : {};
+    const via = f.Router || f.Route || '';
+    const steps = [['m', C ? `Parsing the order: ${C.kind.toLowerCase()}, ${C.title.replace(/\s+/g, ' ')}.` : S.chart ? 'Parsing the order: a market read, BTC on the 4h.' : 'Parsing the order. It does not name a trade.', 420]];
+    (S.tools || []).forEach(t => steps.push(['t', t, 640]));
+    if (C) steps.push(['m', `Proposing ${C.title.replace(/\s+/g, ' ')}${via ? ' via ' + via : ''}.`, 380], ['r', 'Handing it to the runtime. Your limits decide.', 320]);
+    else if (S.chart) steps.push(['m', 'Reading the structure: highs, lows and the level that matters.', 420]);
+    else steps.push(['m', 'Nothing to route. Asking what you want instead.', 360]);
+    return steps;
+  };
+  const TAG = { m: 'Model', t: 'Tool', r: 'Runtime' };
+  const reasoning = async (S, w) => {
+    const li = push(el('li', 't-rz', `<button class="rz-h" type="button" aria-expanded="true"><span class="rz-g" aria-hidden="true">${'<i></i>'.repeat(9)}</span><span class="rz-t">Reasoning</span><span class="rz-ms mono">0.0s</span><svg class="rz-cv" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.6l-6-6 1.4-1.4 4.6 4.6 4.6-4.6 1.4 1.4z"/></svg></button><div class="rz-w"><ol class="rz-b"></ol></div>`));
+    const head = li.querySelector('.rz-h'), lab = li.querySelector('.rz-t'), clock = li.querySelector('.rz-ms'), body = li.querySelector('.rz-b');
+    let manual = false; const wrap = li.querySelector('.rz-w');
+    /* fold and unfold by measuring: the height eases from what it is to what it will be */
+    const fold = v => {
+      const h0 = wrap.getBoundingClientRect().height; li.classList.toggle('shut', v); head.setAttribute('aria-expanded', String(!v));
+      const h1 = wrap.getBoundingClientRect().height; if (RM || Math.abs(h1 - h0) < 2 || !wrap.animate) return;
+      wrap.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: 420, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
+    };
+    head.addEventListener('click', () => { manual = true; fold(!li.classList.contains('shut')); });
+    const t0 = performance.now(), tick = setInterval(() => { clock.textContent = ((performance.now() - t0) / 1000).toFixed(1) + 's'; }, 100);
+    try {
+      for (const [k, text, ms] of reasonOf(S)) {
+        const s = document.createElement('li'); s.className = 'rz-s k-' + k + ' run';
+        s.innerHTML = `<i class="rz-n" aria-hidden="true"></i><b class="rz-k mono">${TAG[k]}</b><span class="rz-x"></span><span class="rz-r mono"></span>`;
+        body.appendChild(s); stick(true);
+        const x = s.querySelector('.rz-x'), r = s.querySelector('.rz-r'), s0 = performance.now();
+        let si = 0; const sp = setInterval(() => { r.textContent = SPIN[si++ % 4]; }, 90);
+        await w(decode(x, k === 't' ? text.toUpperCase() : text, Math.min(ms * 0.75, text.length * 16)));
+        await w(beat(Math.max(0, ms - (performance.now() - s0))));
+        clearInterval(sp); s.classList.remove('run'); s.classList.add('ok');
+        r.textContent = Math.round(performance.now() - s0 + (k === 't' ? 40 : 0)) + 'ms';
+      }
+    } finally { clearInterval(tick); }
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    li.classList.add('done'); lab.innerHTML = `Reasoned for <span class="rz-sec">${secs}s</span>`; clock.textContent = `${body.children.length} steps`;
+    /* folds itself once the answer starts, unless you opened or closed it yourself */
+    setTimeout(() => { if (!manual && li.isConnected) fold(true); }, rush ? 0 : 900);
+    return li;
+  };
   /* tool calls read as a log: a status cell, then what was read */
   const tools = async list => {
     const li = push(el('li', 't-log mono', list.map(t => `<span class="lg"><b>..</b><span>${t}</span></span>`).join('')));
@@ -438,6 +508,7 @@
     <div class="xc-body">
       <div class="xc-top mono"><span>${C.kind}</span><span class="xc-st">Checking</span></div>
       <p class="xc-title">${C.title}</p>
+      ${C.fields ? `<dl class="xc-rows mono">${C.fields.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
       <ol class="xc-checks mono">${C.checks.map(([n, v, l]) => `<li><span>${n}</span><span>${v} <em>/ ${l}</em></span><b>..</b></li>`).join('')}</ol>
       <p class="xc-foot mono"><span class="xc-do"></span><span class="xc-exp"></span></p>
     </div>`);
@@ -535,50 +606,79 @@
     return li;
   };
   let spam = 0, spoke = false, idleT = 0;
-  const idleNudge = () => { clearTimeout(idleT); idleT = setTimeout(async () => { if (busy || pending) return; K('nudge'); await vex('Ready for the next one.', '', 'nudge'); }, 9000); };
+  /* a nudge after a quiet spell, never while you are typing an order */
+  const idleNudge = () => { clearTimeout(idleT); idleT = setTimeout(async () => { if (busy || pending) return; if (ask && (ask.value.trim() || document.activeElement === ask)) { idleNudge(); return; } K('nudge'); await vex('Ready for the next one.', '', 'nudge'); }, 9000); };
+  /* every run has a ticket; New chat voids it, and the run stops at its next step without touching the new chat */
+  let gen = 0; const CANCEL = {};
   const run = async S => {
     clearTimeout(idleT); busy = true; rush = false; spam = 0; spoke = false; tz = performance.now();
+    let tick = 0; const my = ++gen, w = async pr => { const v = await pr; if (my !== gen) throw CANCEL; return v; };
     /* the history rail hears every order: what you asked, then how it ended */
     const kind = S.card ? 'swap' : S.chart ? 'chart' : 'ask'; let result = S.card ? '' : 'Answered';
     dispatchEvent(new CustomEvent('vex:run', { detail: { q: S.you, kind } }));
-    you(S.you); K('request', S.you); setHint('Press to hurry her'); await beat(350);
-    sys(S.card ? 'Routing order' : 'Reading market'); await beat(300);
-    await tools(S.tools);
-    if (S.sayOnly) await vex(S.say, '', S.v.say);
-    if (S.chart) { push(chartOf()); await beat(300); await vex(S.say, '', S.v.say); }
+    try {
+    you(S.you); K('request', S.you); setHint('Press to hurry her'); await w(beat(350));
+    await reasoning(S, w);
+    if (S.sayOnly) await w(vex(S.say, '', S.v.say));
+    if (S.chart) { push(chartOf()); await w(beat(300)); await w(vex(S.say, '', S.v.say)); }
     if (S.card) {
       S.card = withRisk(S.card);
-      await vex(S.lead, '', S.v.lead); K('propose');
+      await w(vex(S.lead, '', S.v.lead)); K('propose');
       const card = push(cardOf(S.card)), lis = [...card.querySelectorAll('.xc-checks li')], st = card.querySelector('.xc-st'), act = card.querySelector('.xc-do'), exp = card.querySelector('.xc-exp');
+      /* every row waits under a cover; the fields scan in one after another, each check scans in as the runtime reads it */
+      const scan = !RM && !rush, frows = [...card.querySelectorAll('.xc-rows > div')];
+      /* the cover takes the colour of whatever is really behind the row */
+      const bgOf = n => { for (let e = n; e && e !== document.body; e = e.parentElement) { const b = getComputedStyle(e).backgroundColor; if (b && b !== 'transparent' && !/rgba\(0, 0, 0, 0\)|\/ 0\)$/.test(b)) return b; } return ''; };
+      if (scan) [...frows, ...lis].forEach(r => { r.classList.add('sc-wait'); const b = bgOf(r); if (b) r.style.setProperty('--sc-bg', b); });
+      for (const r of frows) { if (rush) break; r.classList.add('sc-go'); await w(beat(120)); }
+      if (rush) [...frows, ...lis].forEach(r => r.classList.remove('sc-wait', 'sc-go'));
+      if (frows.length) await w(beat(260));
       const status = (txt, cls) => { st.textContent = txt; card.dataset.st = cls; };
       status('Checking', 'run'); let bad = false;
       for (let k = 0; k < lis.length; k++) {
         const ok = S.card.checks[k][3] === 'ok', b = lis[k].querySelector('b');
-        lis[k].classList.add('run'); await beat(520);
+        lis[k].classList.add('run', 'sc-go'); await w(beat(520));
         lis[k].classList.remove('run'); lis[k].classList.add(ok ? 'ok' : 'no'); b.textContent = ok ? 'Pass' : 'Fail'; if (!ok) bad = true;
       }
       if (bad) {
         status('Blocked', 'no'); act.textContent = 'Nothing signed'; result = 'Blocked';
-        K('refused'); await vex(S.refuse, 't-no', S.v.refuse);
+        K('refused'); await w(vex(S.refuse, 't-no', S.v.refuse));
       } else {
         status('Cleared', 'ok'); act.textContent = 'Awaiting approval';
         let left = 3599; exp.textContent = '59:59';
-        const tick = setInterval(() => { left--; exp.textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0'); }, 1000);
-        K('wait'); await vex(S.ask, '', S.v.ask); rush = false;
+        tick = setInterval(() => { left--; exp.textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0'); }, 1000);
+        K('wait'); await w(vex(S.ask, '', S.v.ask)); rush = false;
         setHint('Press vEXIT to approve', true); busy = false;
-        await new Promise(r => { pending = r; });
+        await w(new Promise(r => { pending = r; }));
         pending = null; busy = true; clearInterval(tick); exp.textContent = '';
-        K('approve'); status('Signing', 'run'); act.textContent = 'Signing on device'; setHint('Signing'); sys('Signing on device'); await beat(1000);
+        K('approve'); status('Signing', 'run'); act.textContent = 'Signing on this computer'; setHint('Signing'); sys('Signing on this computer'); await w(beat(1000));
         status('Signed', 'done'); act.textContent = 'Sent, simulated'; exp.textContent = ''; result = 'Signed';
-        K('done'); await vex(S.done, 't-ok', S.v.done);
+        K('done'); await w(vex(S.done, 't-ok', S.v.done));
       }
+    }
+    } catch (e) {
+      clearInterval(tick); if (e !== CANCEL) throw e;
+      /* voided by New chat: the order ends here, nothing signed */
+      dispatchEvent(new CustomEvent('vex:end', { detail: { q: S.you, kind, result: 'Cancelled' } }));
+      return;
     }
     rush = false; busy = false; K('idle'); setHint('Press vEXIT for the next order'); idleNudge();
     dispatchEvent(new CustomEvent('vex:end', { detail: { q: S.you, kind, result } }));
   };
   /* for the history rail: ask again, or start a clean chat (only when she is free) */
   window.vexAsk = q => { if (busy || pending) return false; touched = true; run(fromText(q)); return true; };
-  window.vexNew = () => { if (busy || pending) return false; touched = true; clearTimeout(idleT); thread.querySelectorAll(':scope > li').forEach(li => li.remove()); thread.classList.remove('scrolled'); K('hi'); vex('I’m Vex. I trade inside your limits.', '', 'hi'); setHint('Press vEXIT to send'); return true; };
+  /* New chat always works: a running order is voided (an order awaiting approval is dropped, nothing signed), her voice stops, the talk clears */
+  window.vexNew = () => {
+    touched = true; clearTimeout(idleT); Voice.stop();
+    const was = busy || pending;
+    if (was) { gen++; rush = true; const p = pending; pending = null; busy = false; if (p) p(); }
+    setTimeout(() => {
+      rush = false; busy = false; pending = null; spam = 0;
+      thread.querySelectorAll(':scope > li').forEach(li => li.remove()); thread.classList.remove('scrolled');
+      K('reset'); K('hi'); vex('I’m Vex. I trade inside your limits.', '', 'hi'); setHint('Press vEXIT to send');
+    }, was ? 80 : 0);
+    return true;
+  };
   window.vexPress = () => {
     touched = true; K('press');
     if (pending) { pending(); return; }
@@ -597,12 +697,12 @@
   const fromText = q => {
     const l = q.toLowerCase();
     const slip = (l.match(/(\d+(?:\.\d+)?)\s*%/) || [])[1];
-    let base = /\ball\b|whole|ape|everything|max size/.test(l) || (slip && +slip > RISK[risk].slip) ? SC[1] : /btc|bitcoin|analy|chart|research|look at/.test(l) ? SC[2] : /swap|buy|sell|trade|usdc|eth|sol|long|short/.test(l) ? SC[0] : null;
+    let base = /bridge|send it to|send to/.test(l) ? SC[3] : /\ball\b|whole|ape|everything|max size/.test(l) || (slip && +slip > RISK[risk].slip) ? SC[1] : /btc|bitcoin|analy|chart|research|look at/.test(l) ? SC[2] : /swap|buy|sell|trade|usdc|eth|sol|long|short/.test(l) ? SC[0] : null;
     if (!base) return { you: q, tools: ['Intent / unclear'], chart: false, v: { say: 'intent' }, say: 'I trade inside your limits. Try a swap, or ask me about BTC.', sayOnly: true };
     const S = JSON.parse(JSON.stringify(base)); S.you = q;
     const m = q.match(/(\d+(?:\.\d+)?)\s*([a-z]{2,6})\b.*?\b(?:to|for|into)\s+([a-z]{2,10})/i);
-    if (S.card && m) S.card.title = `${m[1]} ${m[2].toUpperCase()} → ${m[3].toUpperCase()}`;
-    if (S.card && m && base === SC[0]) { S.lead = `Route found for ${m[1]} ${m[2].toUpperCase()} to ${m[3].toUpperCase()}. Checking your limits.`; S.v = Object.assign({}, S.v, { lead: '' }); }
+    if (S.card && m && base !== SC[3]) S.card.title = `${m[1]} ${m[2].toUpperCase()} → ${m[3].toUpperCase()}`;
+    if (S.card && m && base === SC[0] && S.card.title !== base.card.title) { S.lead = `Route found for ${m[1]} ${m[2].toUpperCase()} to ${m[3].toUpperCase()}. Checking your limits.`; S.v = Object.assign({}, S.v, { lead: '' }); }
     if (S.card && slip && +slip > RISK[risk].slip) { S.refuse = `Blocked. ${slip}% slippage is over your ${RISK[risk].slip}% limit. Nothing signed.`; S.v = Object.assign({}, S.v, { refuse: '' }); }
     if (S.card && slip) { S.card.meta[2] = 'Slip ' + slip + '%'; S.card.checks[0][1] = slip + '%'; }
     return S;
